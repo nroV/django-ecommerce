@@ -13,23 +13,23 @@ urlpatterns = [
    path('product/create',views.ProductCreate.as_view(),name='list-product'),
 
     #category
-   path('product/category',views.CategoryList.as_view(),name='list-product'),
-   path('product/category/create',views.CategoryCreate.as_view(),name='list-product'),
-   path('product/category/<int:pk>',views.CategoryRUD.as_view(),name='list-product'),
+   path('category',views.CategoryList.as_view(),name='list-product'),
+   path('category/create',views.CategoryCreate.as_view(),name='list-product'),
+   path('category/<int:pk>',views.CategoryRUD.as_view(),name='list-product'),
     #order
     
-   path('product/order',views.OrderDetailView.as_view(),name='list-product'),
-   path('product/order/<int:pk>',views.OrderDetailRetriandDelete.as_view(),name='list-product'),
-   path('product/order/product',views.OrderDetailCreate.as_view(),name='create-list-product'),
-   path('product/order-status/<int:pk>',views.OrderStatus,name='order-status'),
+   path('order',views.OrderDetailView.as_view(),name='list-product'),
+   path('order/<int:pk>',views.OrderDetailRetriandDelete.as_view(),name='list-product'),
+   path('order/product',views.OrderDetailCreate.as_view(),name='create-list-product'),
+   path('order-status/<int:pk>',views.OrderStatus,name='order-status'),
   
 
    
    #review product
 
 
-   path('product/review',views.ReviewList.as_view(),name='review-product'),
-   path('product/review/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
+   path('review/product/',views.ReviewList.as_view(),name='review-product'),
+   path('review/product/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
     # Json Web Token
     # path('product/login', views.CustomTokenObtainPairView.as_view()),
     path('auth/login',views.logincustomer,name="login"),
