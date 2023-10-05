@@ -47,7 +47,7 @@ class Customer(AbstractBaseUser,models.Model):
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
-    gender = models.CharField(max_length=10,null= False),
+    gender = models.CharField(max_length=10,null= False)
     # created_at = models.DateTimeField(default=datetime.now())
 
     # owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)   
@@ -100,7 +100,7 @@ class OrderDetail(models.Model):
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     delivered = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    shipped_at = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now= True)
     method = models.CharField(max_length=20,null=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -152,7 +152,6 @@ class Address(models.Model):
     city = models.CharField(max_length=255)
     latitude = models.DecimalField(max_digits=9, decimal_places=6,null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6,null=True)
-    country = models.CharField(max_length=255)
 
     def __str__(self):
         return f"Address {self.id}"
