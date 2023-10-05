@@ -1,6 +1,7 @@
 import os
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password, check_password
+from drf_yasg.utils import swagger_auto_schema
 
 # Create your views here.
 from django.shortcuts import render
@@ -534,6 +535,9 @@ def VerifyCodePW(request):
   return Response({
              "message":"wrong user credential"
     },status=HTTP_401_UNAUTHORIZED)
+  
+  
+
 @api_view(['POST'])
 def logincustomer(request):
     serializers =  CustomerSerializerLogin(data=request.data)
@@ -622,6 +626,39 @@ def socialauth(request):
    return Response(serializers.errors,status=HTTP_400_BAD_REQUEST) 
 
    pass
+
+@swagger_auto_schema(method='PUT', request_body= CustomerSerializerEdit)
+@api_view(['PUT'])
+def updateuserprofile(request,pk):
+  try:
+   user = Customer.objects.get(pk = pk )
+   serializers =  CustomerSerializerEdit(   user ,data=request.data)
+ 
+
+   if serializers.is_valid():       
+         serializers.save()
+         return Response( serializers.data ,status=HTTP_201_CREATED)
+   else:
+       #validation error
+       return Response(serializers.errors,status=HTTP_400_BAD_REQUEST)  
+  except Customer.DoesNotExist:
+          return Response({
+             "data":"there is no user associated with please create an account"
+          },status=HTTP_400_BAD_REQUEST)
+      
+
+
+
+     
+#   I/flutter ( 6751): nightpp19@gmail.com
+#   I/flutter ( 6751): 116512354859814328502
+#   I/flutter ( 6751): SIV SOVANPANHAVORN (Vorni)  
+
+
+
+
+
+
 
 @api_view(['POST'])      
 def register(request):

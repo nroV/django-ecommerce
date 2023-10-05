@@ -42,12 +42,12 @@ class Customer(AbstractBaseUser,models.Model):
     username = models.CharField(max_length=40,null= False)
     email = models.EmailField(max_length=255,null= False,unique=False)
     password = models.CharField(max_length=255,null= False)
-    # telephone = models.CharField(max_length=15,null= False)
     telephone = PhoneNumberField(blank=True,null=True)
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
+    gender = models.CharField(max_length=10,null= False),
     # created_at = models.DateTimeField(default=datetime.now())
 
     # owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)   

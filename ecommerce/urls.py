@@ -35,6 +35,7 @@ urlpatterns = [
     path('auth/login',views.logincustomer,name="login"),
     path('auth/register',views.register,name="register") ,
     path('auth/google',views.socialauth,name="login-google"),
+   path('auth/update/<int:pk>',views.updateuserprofile,name="login-google-profile"),
      # Google Sign in Token
      
     path('auth/reset',views.ResetPW,name="reset-password1"),

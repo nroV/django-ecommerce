@@ -109,6 +109,12 @@ class CustomerSerializer(serializers.ModelSerializer):
    class Meta:
       model =Customer
       fields = '__all__'
+      
+class CustomerSerializerEdit(serializers.ModelSerializer):
+   class Meta:
+     model = Customer
+     fields =('username','firstname','lastname','telephone')
+  
 class AddressSerializer(serializers.ModelSerializer):
    customer_id  = CustomerSerializer(many=False,read_only= True)
    class Meta:
