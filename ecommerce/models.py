@@ -76,6 +76,23 @@ class Category(models.Model):
         return self.categoryname
     
 
+class Colors(models.Model):
+    color = models.CharField(max_length=25)
+    desc = models.CharField(max_length=100,null=True,blank=True)
+
+
+class Attributes(models.Model):
+    size = models.CharField(max_length=25,null=True,blank=True)
+    colorid = models.ManyToManyField(Colors,blank=True,null=True)
+    weight = models.FloatField(null=True,blank=True)
+    brand = models.CharField(max_length=25,null=True,blank=True)
+    model = models.CharField(max_length=25,null=True,blank=True)
+    material_name = models.CharField(max_length=100,null=True,blank=True)
+
+    def __str__(self):
+        return self.model+self.size+self.brand
+
+
 class Product(models.Model):
    
     productname = models.CharField(max_length=25,null=False,error_messages= "product cannot be empty")
@@ -85,8 +102,10 @@ class Product(models.Model):
     owner = models.ForeignKey(User,on_delete=models.CASCADE)    
     imgid = models.ManyToManyField(Images)
     avg_rating = models.FloatField(validators=[MinValueValidator(1),MaxValueValidator(5)],default=0)
-    discount = models.DecimalField(max_digits=10, decimal_places=2,default=0) 
+    discount = models.IntegerField(null=True,default=0)
     sell_rating = models.IntegerField(null=True,default=0)
+    description  = models.CharField(null=False,default="This is a product description",max_length=100)
+    attribution = models.ForeignKey(Attributes,on_delete= models.CASCADE,related_name= 'attribute',null=True,blank=True)
     # created_at = models.DateTimeField(default=datetime.now())
     def delete(self, *args, **kwargs):
         for img in self.imgid.all():
@@ -169,23 +188,6 @@ class ReviewRating(models.Model):
 
     def __str__(self):
         return f"Review Rating {self.id}"
-
-class Colors(models.Model):
-    color = models.CharField(max_length=25)
-    desc = models.CharField(max_length=100,null=True,blank=True)
-
-
-class Attributes(models.Model):
-    size = models.CharField(max_length=25,null=True,blank=True)
-    colorid = models.ManyToManyField(Colors)
-    weight = models.FloatField(null=True,blank=True)
-    brand = models.CharField(max_length=25,null=True,blank=True)
-    model = models.CharField(max_length=25,null=True,blank=True)
-    material_name = models.CharField(max_length=100,null=True,blank=True)
-
-    def __str__(self):
-        return self.model+self.size+self.brand
-
 class SuperDeal(models.Model):
     dealname = models.CharField(max_length=25,null=True,blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

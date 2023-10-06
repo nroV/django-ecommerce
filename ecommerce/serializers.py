@@ -14,13 +14,25 @@ class ImageSerializer(serializers.ModelSerializer):
    
 
 class CategorySerializerV2(serializers.ModelSerializer):
-  
+   imgid = ImageSerializer(many=False)
    class Meta:
       model = Category
-      fields = ['id', 'categoryname']
+      fields = ['id', 'categoryname','imgid']
+      
+class ColorSerialzer(serializers.ModelSerializer) :
+  class Meta:
+    model = Colors
+    fields= '__all__'      
+class AttributesSerialzer(serializers.ModelSerializer) :
+  colorid = ColorSerialzer(many= True)
+  class Meta:
+    model = Attributes
+    fields= '__all__'      
 class ProductSerializerV2(serializers.ModelSerializer):
     category =  CategorySerializerV2(many=False,read_only=False)
     owner = UserSerializer(many=False)
+    imgid = ImageSerializer(many=True)
+    attribution = AttributesSerialzer(many=False,)
     class Meta:
       model = Product
       fields ='__all__'
@@ -43,9 +55,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
    product =  ProductSerializer(many=True,read_only=True)
+   imgid = ImageSerializer(many=False)
+
    class Meta:
       model = Category
-      fields = ['id', 'categoryname','product']
+      fields = ['id', 'categoryname','product','imgid']
 
 class OrderProductSerializer(serializers.ModelSerializer):
     

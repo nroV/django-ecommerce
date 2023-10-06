@@ -53,7 +53,7 @@ from decimal import Decimal
 #      })
 
 class MyCustomPagination(PageNumberPagination):
-    page_size = 1
+    page_size = 10
     page_size_query_param = 'page_size'
     
     
@@ -84,6 +84,7 @@ class ProductDiscount(generics.ListAPIView,PageNumberPagination):
     serializer_class = ProductSerializerV2
     queryset = Product.objects.all
     def get_queryset(self):
+      #  print(self.kwargs['id'])
        queryset = Product.objects.filter( discount__gt=0)
        return queryset
        
@@ -133,7 +134,14 @@ class ProductList(generics.ListAPIView,PageNumberPagination):
     def get_queryset(self):
         min_price = self.request.GET.get('min_price', None)
         max_price = self.request.GET.get('max_price', None)
-
+        latest = self.request.GET.get('order',None)
+        print(latest)
+        if latest is not None:
+           if latest.lower() == "desc":
+              
+            self.queryset = self.queryset.all().order_by('-pk')
+           else:
+            self.queryset = self.queryset.all().order_by('pk')
         if min_price is not None and max_price is not None:
             self.queryset = self.queryset.filter(price__range=(min_price, max_price))
 

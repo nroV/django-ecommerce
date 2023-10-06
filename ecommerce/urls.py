@@ -10,7 +10,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 urlpatterns = [
    path('product',views.ProductList.as_view(),name='list-product'),
    path('product/sort',views.ProductListSort.as_view(),name='list-product'),
-   path('product/discount',views.ProductDiscount.as_view(),name='list-product'),
+   path('product/discount/',views.ProductDiscount.as_view(),name='list-product'),
    path('product/<int:pk>',views.ProductRUD.as_view(),name='retrieve-update-delete-product'),
    path('product/create',views.ProductCreate.as_view(),name='list-product'),
 
