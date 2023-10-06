@@ -40,9 +40,11 @@ INSTALLED_APPS = [
            'rest_framework_simplejwt',
            'ecommerce',
                "phonenumber_field",
-                   'django_filters',        
+        
    'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
    'drf_yasg',
+       'django_filters',
+
 
 
   
@@ -147,14 +149,17 @@ REST_FRAMEWORK = {
     #     'rest_framework.authentication.TokenAuthentication',
 
     # ],
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+
+
+
+ 
     'DEFAULT_AUTHENTICATION_CLASSES': (
       
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
       'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 5
+     'PAGE_SIZE': 10,
+         'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated',

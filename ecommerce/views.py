@@ -3,6 +3,9 @@ from django.shortcuts import render
 from django.contrib.auth.hashers import make_password, check_password
 from drf_yasg.utils import swagger_auto_schema
 
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 # Create your views here.
 from django.shortcuts import render
 from django.urls import reverse
@@ -24,7 +27,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 import stripe
 from rest_framework.pagination import PageNumberPagination
-
+from django_filters.rest_framework import *
 from django.conf import settings
 import random
 from decimal import Decimal
@@ -64,24 +67,85 @@ class MyCustomPagination(PageNumberPagination):
             'previous': self.get_previous_link(),
             'results': data,
         })
-
-
-class ProductList(generics.ListAPIView,PageNumberPagination):
+class ProductListFilter(generics.ListAPIView,PageNumberPagination):
     serializer_class = ProductSerializerV2
     queryset = Product.objects.all()
 
     pagination_class = MyCustomPagination
 
-   
   
 
    #  pagination_class
 
+from rest_framework import filters
+
+from django_filters.rest_framework import DjangoFilterBackend
+class ProductDiscount(generics.ListAPIView,PageNumberPagination):
+    serializer_class = ProductSerializerV2
+    queryset = Product.objects.all
+    def get_queryset(self):
+       queryset = Product.objects.filter( discount__gt=0)
+       return queryset
+       
+class ProductListSort(generics.ListAPIView,PageNumberPagination):
+    serializer_class = ProductSerializerV2
+    queryset = Product.objects.all().order_by('-price')
+   #  filter_backends = [DjangoFilterBackend,OrderingFilter]
+   #  ordering_fields = ['price','productname']
+    pagination_class = MyCustomPagination
+    
     def get_queryset(self):
         print(super().get_queryset())
-        q = get_list_or_404(Product)
+        price = self.request.GET.get('price', None)
+        q =super().get_queryset()
+        bestseller = self.request.GET.get('best_selling',None)
+        popular = self.request.GET.get('popular',None)
+
+        if bestseller is not None:
+           if bestseller.upper() =="DESC":
+            q = Product.objects.all().order_by('-sell_rating')
+           else:
+            q = Product.objects.all().order_by('sell_rating')
+        #if none order = "ASC"
+
+        if popular is not None:
+              
+           if popular.upper() =="DESC":
+            q = Product.objects.all().order_by('-avg_rating')
+           else:
+            q = Product.objects.all().order_by('avg_rating')
+        if price is not None:
+         if  price.upper() == "DESC":
+          q = Product.objects.all().order_by('-price')
+    
+         else :
+          q = Product.objects.all().order_by('price')
+      
+        return q 
+class ProductList(generics.ListAPIView,PageNumberPagination):
+    serializer_class = ProductSerializerV2
+    queryset = Product.objects.all()
+    filter_backends = [DjangoFilterBackend,filters.SearchFilter]
+    filterset_fields = ['price', 'category']
+    search_fields = ['productname']
+  
+    pagination_class = MyCustomPagination
+    def get_queryset(self):
+        min_price = self.request.GET.get('min_price', None)
+        max_price = self.request.GET.get('max_price', None)
+
+        if min_price is not None and max_price is not None:
+            self.queryset = self.queryset.filter(price__range=(min_price, max_price))
+
+        return self.queryset
+
+   # #  pagination_class
+
+   #  def get_queryset(self):
+   #      print(super().get_queryset())
+   #      q = get_list_or_404(Product)
    
-        return   q 
+   #      return   q 
 class ProductRUD(generics.RetrieveUpdateDestroyAPIView)   :
    queryset = Product.objects.all() 
    # lookup_field = ['']
