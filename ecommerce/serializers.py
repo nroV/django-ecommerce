@@ -63,35 +63,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class OrderProductSerializer(serializers.ModelSerializer):
     
-    product = ProductSerializer()
+    product = ProductSerializerV2()
+    colorselection  = ColorSerialzer(many=False)
+    imageproduct = ImageSerializer(many=False)
+    # product_id = serializers.IntegerField(write_only=True)
+
+
 
     class Meta:
         model = OrderProduct
-        fields = ['product', 'quantity']
-
-
-
-class OrderDetailSerializer(serializers.ModelSerializer):
-
-   products = OrderProductSerializer(source='orderproduct_set', many=True,read_only=True)
-
-
-   class Meta:
-      model =OrderDetail
-
-      read_only_fields = ('amount','products',)
-
-      fields = '__all__'
-
-class OrderDetailStatusSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-
-      model =OrderDetail
-
-      read_only_fields = ('customer','method','qty','amount','product',)
-
-      fields = '__all__'
+        fields = ['product', 'quantity','colorselection','imageproduct']
 
 
 
@@ -103,10 +84,12 @@ class CustomerSerializerResetPassword(serializers.ModelSerializer):
   class Meta:
       model =Customer
       fields = ['email']
+      
+      
 class CustomerSerializerLogin(serializers.ModelSerializer):
   class Meta:
       model =Customer
-      fields = ['email','password']
+      fields = ['id','email','password']
 
 class PasswordResetCodesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -122,16 +105,56 @@ class CustomerSerializer(serializers.ModelSerializer):
 
    class Meta:
       model =Customer
-      fields = '__all__'
-      
-class CustomerSerializerEdit(serializers.ModelSerializer):
-   class Meta:
-     model = Customer
-     fields =('username','firstname','lastname','telephone')
-  
+      # read_only_fields = ('password',)
+
+      fields = ['id','firstname','lastname','email','telephone','gender','imgid','password']
+ 
+ 
+ 
+ 
 class AddressSerializer(serializers.ModelSerializer):
    customer_id  = CustomerSerializer(many=False,read_only= True)
    class Meta:
       model =Address
       fields = '__all__'
- 
+class OrderDetailSerializer(serializers.ModelSerializer):
+   address = AddressSerializer(many=False,read_only=True) 
+   products = OrderProductSerializer(source='orderproduct_set', many=True,read_only=True)
+  #  products = OrderProductSerializer(source='orderproduct_set', many=True,read_only=True)
+
+
+   class Meta:
+      model =OrderDetail
+
+      read_only_fields = ('amount','address')
+
+      fields = '__all__'
+
+  #  def create(self, validated_data):
+  #       products_data = validated_data.pop('products')
+  #       order = OrderDetail.objects.create(**validated_data)
+  #       for product_data in products_data:
+  #           Product.objects.create(order=order, **product_data)
+  #       return order
+
+class CustomerSerializerId(serializers.ModelSerializer):
+
+   class Meta:
+      model =Customer
+      fields = ['id','isowner']    
+class CustomerSerializerEdit(serializers.ModelSerializer):
+   class Meta:
+     model = Customer
+     fields =('username','firstname','lastname','telephone')
+  
+class OrderDetailStatusSerializer(serializers.ModelSerializer):
+
+    
+    class Meta:
+
+      model =OrderDetail
+
+      read_only_fields = ('customer','method','qty','amount','product',)
+
+      fields = '__all__'
+

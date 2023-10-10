@@ -21,8 +21,9 @@ urlpatterns = [
     #order
     
    path('order',views.OrderDetailView.as_view(),name='list-product'),
+      path('order/user/<int:pk>',views.OrderUserView.as_view(),name='list-product-user'),
    path('order/<int:pk>',views.OrderDetailRetriandDelete.as_view(),name='list-product'),
-   path('order/product',views.OrderDetailCreate.as_view(),name='create-list-product'),
+   path('order/product/<int:pk>',views.OrderDetailCreate.as_view(),name='create-list-product'),
    path('order-status/<int:pk>',views.OrderStatus,name='order-status'),
   
 
@@ -31,10 +32,12 @@ urlpatterns = [
 
 
    path('review/product/',views.ReviewList.as_view(),name='review-product'),
-   path('review/product/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
+   path('review/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
+   path('review/product/<int:pk>',views. ReviewProduct.as_view(),name='review-product-v2'),
     # Json Web Token
     # path('product/login', views.CustomTokenObtainPairView.as_view()),
     path('auth/login',views.logincustomer,name="login"),
+    
     path('auth/register',views.register,name="register") ,
     path('auth/google',views.socialauth,name="login-google"),
    path('auth/update/<int:pk>',views.updateuserprofile,name="login-google-profile"),
@@ -42,7 +45,7 @@ urlpatterns = [
      
     path('auth/reset',views.ResetPW,name="reset-password1"),
     path('auth/reset/verify',views.VerifyCodePW,name="reset-password2"),
-
+    path('auth/user/<int:pk>',views.finduser,name="user"),
     path('activate/', views.activate, name='activate'),
 
     

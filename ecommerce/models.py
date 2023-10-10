@@ -46,11 +46,7 @@ class Customer(AbstractBaseUser,models.Model):
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
-    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
-    gender = models.CharField(max_length=10,null= False)
-    # created_at = models.DateTimeField(default=datetime.now())
-
-    # owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)   
+    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
 
     def delete(self, *args, **kwargs):
         
@@ -79,10 +75,19 @@ class Category(models.Model):
 class Colors(models.Model):
     color = models.CharField(max_length=25)
     desc = models.CharField(max_length=100,null=True,blank=True)
+    imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
+    
+    def __str__(self) :
+        return f"  {self.pk} {self.color} {self.desc} "
 
-
+class Sizes(models.Model) :
+      size =  models.CharField(max_length=25,null=True,blank=True)
+      imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
+           
+      def __str__(self) :
+        return f"  {self.pk} {self.size} {self.imgid} "
 class Attributes(models.Model):
-    size = models.CharField(max_length=25,null=True,blank=True)
+    size = models.ManyToManyField(Sizes,null=True,blank=True)
     colorid = models.ManyToManyField(Colors,blank=True,null=True)
     weight = models.FloatField(null=True,blank=True)
     brand = models.CharField(max_length=25,null=True,blank=True)
@@ -90,9 +95,10 @@ class Attributes(models.Model):
     material_name = models.CharField(max_length=100,null=True,blank=True)
 
     def __str__(self):
-        return self.model+self.size+self.brand
+        return self.model+self.brand
 
 
+    
 class Product(models.Model):
    
     productname = models.CharField(max_length=25,null=False,error_messages= "product cannot be empty")
@@ -114,29 +120,6 @@ class Product(models.Model):
     def __str__(self):
         return self.productname
 
-class OrderDetail(models.Model):
-
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    delivered = models.BooleanField(default=False)
-    shipped_at = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now= True)
-    method = models.CharField(max_length=20,null=False)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    ispaid = models.BooleanField(default=False)
-    status = models.CharField(max_length=20,default="Pending")
-    products = models.ManyToManyField(Product, through='OrderProduct')
-
-
-
-    def __str__(self) :
-        return str(self.id)
-
-
-class OrderProduct(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    order = models.ForeignKey(OrderDetail   , on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
 
 # class OrderDetail(models.Model):
 #     created_date = models.DateTimeField(auto_now_add=True)
@@ -168,13 +151,42 @@ class Address(models.Model):
     id = models.AutoField(primary_key=True)
     customer_id = models.ForeignKey(Customer, on_delete=models.CASCADE,related_name="user_address")
     street = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6,null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6,null=True)
+    city = models.CharField(max_length=55)
+    latitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
+    longitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
+    description = models.CharField(max_length=255,default="Current Location")
+    
 
     def __str__(self):
         return f"Address {self.id}"
 
+class OrderDetail(models.Model):
+
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    delivered = models.BooleanField(default=False)
+    shipped_at = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now= True)
+    method = models.CharField(max_length=20,null=False,blank=True,default="Cash")
+    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    ispaid = models.BooleanField(default=False)
+    status = models.CharField(max_length=20,default="Pending")
+    address = models.ForeignKey(Address,null=False,blank=False ,on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, through='OrderProduct')
+
+
+
+
+    def __str__(self) :
+        return str(self.id)
+
+
+class OrderProduct(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    order = models.ForeignKey(OrderDetail   , on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    colorselection =models.ForeignKey(Colors  , on_delete=models.CASCADE,blank=True,null=True)
+    imageproduct = models.ForeignKey(Images  , on_delete=models.CASCADE,blank=True,null=True)
 
 
 class ReviewRating(models.Model):

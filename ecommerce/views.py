@@ -1,4 +1,5 @@
 import os
+import bcrypt
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password, check_password
 from drf_yasg.utils import swagger_auto_schema
@@ -194,62 +195,205 @@ class CategoryRUD(generics.RetrieveUpdateDestroyAPIView):
 
 class OrderDetailCreate(generics.CreateAPIView):
    serializer_class =  OrderDetailSerializer
-    
-   def perform_create(self, serializer):
-    print(self.request.data)
-    data = self.request.data
 
+#    def perform_create(self, serializer):
+#     print(self.request.data)
+#     data = self.request.data
+#     add = get_object_or_404(Address,pk =self.kwargs['pk'])
+#         # Create the order
+#    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
+#     total = 0
+  
+#     order = OrderDetail.objects.create(
+#        customer = serializer.validated_data['customer'],  
+#          amount = total,
+#          address = add,
+#          method = serializer.validated_data['method']
+#          )
+
+#         # Process each product
+ 
+#     for product_data in data['products']:
+#        product = Product.objects.get(id=product_data['id'])
+#        quantity = product_data['quantity']
+
+
+#             # Check if enough stock is available
+#        if product.stockqty < quantity:
+#                 return Response({"error": f"Not enough stock available for product {product.id}"})
+
+#             # Create the OrderProduct
+#          # Create the OrderProduct
+#        OrderProduct.objects.create(order=order, product=product, quantity=quantity)
+#        total +=   (quantity * product.price)
+         
+
+#         # Update the stock quantity of the product
+#        product.stockqty -= quantity
+#        #Increase product selling
+#        product.sell_rating+= 1
+#        product.save()
+ 
+#       #  serializer = self.get_serializer(order)
+#       #  return Response(serializer.data) 
+#     print(f"total: {total}")  
+  
+#     order.amount = total
+#     order.save()
+  
+#     send_mail(
+#     f"Order {   order.id}",
+#     """
+#   Your order has been placed
+#   thanks your for your order
+# """,
+#     "Nightpp19@gmail.com",
+#      [ order.customer.email ],
+#      fail_silently=False,
+#    )
+  
+  
+
+   def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+         print(self.request.data)
+         data = self.request.data
+         add = get_object_or_404(Address,pk =self.kwargs['pk'])
         # Create the order
    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
-    total = 0
-    order = OrderDetail.objects.create(
-       customer = serializer.validated_data['customer'],  
-         amount = total
+         total = 0
+  
+         order = OrderDetail.objects.create(
+           customer = serializer.validated_data['customer'],  
+            amount = total,
+         address = add,
+         method = serializer.validated_data['method']
          )
 
         # Process each product
-    for product_data in data['products']:
-       product = Product.objects.get(id=product_data['id'])
-       quantity = product_data['quantity']
+ 
+         for product_data in data['products']:
+           product = Product.objects.get(id=product_data['id'])
+           quantity = product_data['quantity']
+           color = Colors.objects.get(id = product_data['colorselection'])
+           image = Images.objects.get(id =product_data['imageproduct'])
 
-       # 5
 
-
-       #3 
-
-            # Check if enough stock is available
-       if product.stockqty < quantity:
+            # Check if enough stock is available 
+           if product.stockqty < quantity:
                 return Response({"error": f"Not enough stock available for product {product.id}"})
 
             # Create the OrderProduct
          # Create the OrderProduct
-       OrderProduct.objects.create(order=order, product=product, quantity=quantity)
-       total +=   (quantity * product.price)
+         
+         
+           OrderProduct.objects.create(order=order,
+                                product=product,
+                                quantity=quantity,
+                                colorselection =color,
+                                imageproduct = image
+                                
+                                
+                                
+                                )
+           total +=   (quantity * product.price)
          
 
         # Update the stock quantity of the product
-       product.stockqty -= quantity
+           product.stockqty -= quantity
        #Increase product selling
-       product.sell_rating+= 1
-       product.save()
+           product.sell_rating+= 1
+           product.save()
  
       #  serializer = self.get_serializer(order)
       #  return Response(serializer.data) 
-    order.amount = total
-    order.save()
+           print(f"total: {total}")  
   
-    send_mail(
-    f"Order {   order.id}",
-    """
-  Your order has been placed
-  thanks your for your order
-""",
-    "Nightpp19@gmail.com",
-     [ order.customer.email ],
-     fail_silently=False,
-   )
-    return Response(serializer.data)  
+         order.amount = total
+         order.save()
 
+#          send_mail(
+#     f"Order {   order.id}",
+#     """
+#   Your order has been placed
+#   thanks your for your order
+# """,
+#     "Nightpp19@gmail.com",
+#      [ order.customer.email ],
+#      fail_silently=False,
+#    )
+          
+         return Response({
+                "data": serializer.data,
+                "id": order.id # Access the id of the created object
+              }, status=status.HTTP_201_CREATED)
+  
+        
+  
+# def create(self, request, *args, **kwargs):
+#     data = request.data
+    
+#     print("hello")
+#     print(self.kwargs['pk'])
+
+#     total = 0
+
+#     # Calculate total and check stock before creating the order
+#     for product_data in data['products']:
+#         product = Product.objects.get(id=product_data['id'])
+#         quantity = product_data['quantity']
+
+#         # Check if enough stock is available
+#         if product.stockqty < quantity:
+#             return Response({"error": f"Not enough stock available for product {product.id}"})
+
+#         total += quantity * product.price
+#     add = get_object_or_404(Address,pk =kwargs.get('pk',None))
+#     print(kwargs['pk'])
+#     # Create the order
+#     serializer = OrderDetailSerializer(data=request.data)
+#     if serializer.is_valid():
+#         order = OrderDetail.objects.create(
+#             customer=serializer.validated_data['customer'],
+#             amount=total,
+#             address=add,
+#             method=serializer.validated_data['method']
+#         )
+
+#         # Process each product
+#         for product_data in data['products']:
+#             product = Product.objects.get(id=product_data['id'])
+#             quantity = product_data['quantity']
+
+#             # Create the OrderProduct
+#             OrderProduct.objects.create(order=order, product=product, quantity=quantity)
+
+#             # Update the stock quantity of the product
+#             product.stockqty -= quantity
+#             # Increase product selling
+#             product.sell_rating += 1
+#             product.save()
+#         order.amount = total
+#         order.address =  get_object_or_404(Address,pk =kwargs.get('pk',None))
+#         order.save()
+#       #   send_mail(
+#       #       f"Order {order.id}",
+#       #       """
+#       #       Your order has been placed
+#       #       thanks your for your order
+#       #       """,
+#       #       "Nightpp19@gmail.com",
+#       #       [order.customer.email],
+#       #       fail_silently=False,
+#       #   )
+
+#         return Response({
+#            "data": serializer.data,
+#            "id": order.id
+#         })
+
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrderDetailCreateV2(generics.CreateAPIView):
    serializer_class = OrderDetailSerializer
@@ -281,6 +425,12 @@ thanks your for your order
      fail_silently=False,
    )
      
+
+
+
+
+
+
 
 class OrderDetailRetriandDelete(generics.GenericAPIView):
    def get(self,request,pk):
@@ -337,34 +487,82 @@ def OrderStatus(request,pk):
      },status=HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])     
 
+def finduser(request,pk):
+   
+   if request.method == "GET":
+      if pk is not None :
+      
+
+          customer = get_object_or_404(Customer,pk = pk)
+          serializers = CustomerSerializer(customer,many=False)
+          
+          return Response(serializers.data,HTTP_200_OK)
+   
+       
+   
+      
+      else :
+         return Response(
+            {"message":"not found"},
+            status=HTTP_400_BAD_REQUEST
+         )
 class OrderDetailView(generics.ListAPIView):
    serializer_class = OrderDetailSerializer
    queryset = OrderDetail.objects.all()
+   
+class OrderUserView(generics.ListAPIView):
+   serializer_class = OrderDetailSerializer
+   # pagination_class = None 
+   queryset = OrderDetail.objects.all()
+   def get_queryset(self):
+    customer = get_object_or_404(Customer,pk = self.kwargs.get('pk',None) )
+    print(customer)
+    order = OrderDetail.objects.filter(customer=customer)
+    return order
+
+
+
+      
+   
 class AddressList(generics.ListAPIView):
    queryset= Address.objects.all()
    serializer_class = AddressSerializer
 
-class RetrieveCustomAddress(APIView):
+class RetrieveCustomAddress(generics.ListAPIView):
 
-   def get(self,request,*arg,**kwargs):
-      customer =get_object_or_404(Customer,pk=kwargs.get('pk',None))
-      if customer is not None:
-       addr = get_object_or_404(Address,customer_id=customer)
+   # def get(self,request,*arg,**kwargs):
+   #    customer =get_object_or_404(Customer,pk=kwargs.get('pk',None))
+   #    if customer is not None:
+   #     addr = get_object_or_404(Address,customer_id=customer)
      
-       serializers = AddressSerializer(addr)
-         # Generate confirmation token and activation link
-       confirmation_token = default_token_generator.make_token(user)
-       activate_link_url = reverse('activate')
-       activation_link = f'{activate_link_url}?user_id={user.id}&confirmation_token={confirmation_token}'
+   #     serializers = AddressSerializer(addr)
+   #       # Generate confirmation token and activation link
+   #     confirmation_token = default_token_generator.make_token(user)
+   #     activate_link_url = reverse('activate')
+   #     activation_link = f'{activate_link_url}?user_id={user.id}&confirmation_token={confirmation_token}'
 
-       return Response(serializers.data)
-      else:
-       return Response({
-          "detail":"there is no related customer with by that id"
-       },status=HTTP_404_NOT_FOUND)
+   #     return Response(serializers.data)
+   #    else:
+   #     return Response({
+   #        "detail":"there is no related customer with by that id"
+   #     },status=HTTP_404_NOT_FOUND)
+  
 
-
+   queryset= Address.objects.all()
+   serializer_class = AddressSerializer
+   def get_queryset(self):
+      cus = get_object_or_404(Customer,pk = self.kwargs["pk"])
+      q = Address.objects.filter(customer_id =cus)
+      return q
+class AddressFilter(generics.ListAPIView):
+   
+   queryset= Address.objects.all()
+   serializer_class = AddressSerializer
+   def get_queryset(self):
+      cus = get_object_or_404(Customer,pk = self.kwargs["pk"])
+      Address.objects.filter(customer_id =cus)
 class AddressSingle(generics.RetrieveUpdateDestroyAPIView):
    queryset= Address.objects.all()
    serializer_class = AddressSerializer
@@ -437,6 +635,18 @@ class ReviewList(generics.ListCreateAPIView):
    def create(self, request, *args, **kwargs):
       return super().create(request, *args, **kwargs)
 
+
+class ReviewProduct(generics.ListAPIView):
+   queryset = ReviewRating.objects.all()
+   serializer_class = ReviewSerializer
+   
+   def get_queryset(self):
+       print(self.request.GET.get('pk',None))
+       product = get_object_or_404(Product,pk = self.kwargs.get('pk',None))
+       query = ReviewRating.objects.filter(product = product)
+       return query
+   
+   
 class ReviewRUD(generics.RetrieveUpdateDestroyAPIView):
    queryset = ReviewRating.objects.all()
    serializer_class = ReviewSerializer
@@ -536,6 +746,7 @@ class ImageRUD(generics.RetrieveUpdateDestroyAPIView):
 #     serializer_class = CustomTokenObtainPairSerializer
 verification_code = 0
 
+@swagger_auto_schema(method='POST',request_body= CustomerSerializerResetPassword)
 @api_view(['POST'])
 
 def ResetPW(request):
@@ -609,25 +820,32 @@ def VerifyCodePW(request):
     },status=HTTP_401_UNAUTHORIZED)
   
   
-
+@swagger_auto_schema(method='POST',request_body= CustomerSerializerLogin)
 @api_view(['POST'])
 def logincustomer(request):
     serializers =  CustomerSerializerLogin(data=request.data)
+   #  print(request.data)
 
     if serializers.is_valid():       
 
 
         try:
          user = Customer.objects.get(email = serializers.validated_data['email'], is_activated = True)
+         print(user.password)
+         print(serializers.validated_data['password'])
+         serialid = CustomerSerializerId (user,many=False)
          hashed_pwd = make_password(serializers.validated_data['password'])
+         print(hashed_pwd)
+       
 
-         if check_password(serializers.validated_data['password'],user.password) :
+         if check_password(request.data['password'],user.password) :
 
          
           refresh = RefreshToken.for_user( user )
           token = {
-       'refresh': str(refresh),
+       'refresh': str(refresh),  
        'access': str(refresh.access_token),
+       'user':serialid.data
           }
           return Response(token)
          else:
@@ -636,14 +854,17 @@ def logincustomer(request):
           },status=HTTP_401_UNAUTHORIZED)
         except Customer.DoesNotExist:
           return Response({
-             "data":"there is no user associated with please create an account"
-          },status=HTTP_400_BAD_REQUEST)
+             "data":"there is no user associated with consider register"
+          },status=HTTP_401_UNAUTHORIZED)
       
 
        
     else:
        #validation error
        return Response(serializers.errors,status=HTTP_400_BAD_REQUEST)
+
+@swagger_auto_schema(method='POST',request_body= CustomerSerializerV2)
+
 @api_view(['POST'])
 def socialauth(request):
   serializers = CustomerSerializerV2(data=request.data)
@@ -731,7 +952,7 @@ def updateuserprofile(request,pk):
 
 
 
-
+@swagger_auto_schema(method='POST',request_body= CustomerSerializer)
 @api_view(['POST'])      
 def register(request):
     print("register")
@@ -751,6 +972,7 @@ def register(request):
         serializers.save()
         newuser = Customer.objects.get(email = serializers.validated_data['email'])
         hashed_password = make_password( newuser.password)
+        
         newuser.password = hashed_password
     
 
