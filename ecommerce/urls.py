@@ -16,6 +16,7 @@ urlpatterns = [
 
     #category
    path('category',views.CategoryList.as_view(),name='list-product'),
+   
    path('category/create',views.CategoryCreate.as_view(),name='list-product'),
    path('category/<int:pk>',views.CategoryRUD.as_view(),name='list-product'),
     #order

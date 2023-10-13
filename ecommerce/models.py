@@ -47,6 +47,7 @@ class Customer(AbstractBaseUser,models.Model):
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
+    gender = models.CharField(max_length=25,null= False)
 
     def delete(self, *args, **kwargs):
         
@@ -67,25 +68,24 @@ class PasswordResetCodes(models.Model):
 
 class Category(models.Model):
     categoryname = models.CharField(max_length=25,null=False,error_messages= "category cannot be empty")
-    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
+    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
     def __str__(self):
         return self.categoryname
     
 
 class Colors(models.Model):
     color = models.CharField(max_length=25)
-    desc = models.CharField(max_length=100,null=True,blank=True)
     imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
-    
+    desc = models.CharField(max_length=25,default='color',null=True,blank=True)
     def __str__(self) :
         return f"  {self.pk} {self.color} {self.desc} "
 
 class Sizes(models.Model) :
       size =  models.CharField(max_length=25,null=True,blank=True)
-      imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
+    
            
       def __str__(self) :
-        return f"  {self.pk} {self.size} {self.imgid} "
+        return f"  {self.pk} {self.size} "
 class Attributes(models.Model):
     size = models.ManyToManyField(Sizes,null=True,blank=True)
     colorid = models.ManyToManyField(Colors,blank=True,null=True)
@@ -107,7 +107,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category,on_delete= models.CASCADE,related_name= 'product')
     owner = models.ForeignKey(User,on_delete=models.CASCADE)    
     imgid = models.ManyToManyField(Images)
-    avg_rating = models.FloatField(validators=[MinValueValidator(1),MaxValueValidator(5)],default=0)
+    avg_rating = models.FloatField(validators=[MinValueValidator(1),MaxValueValidator(5)],default=0,blank=True,null=True)
     discount = models.IntegerField(null=True,default=0)
     sell_rating = models.IntegerField(null=True,default=0)
     description  = models.CharField(null=False,default="This is a product description",max_length=100)
@@ -155,6 +155,7 @@ class Address(models.Model):
     latitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
     longitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
     description = models.CharField(max_length=255,default="Current Location")
+    country =  models.CharField(max_length=255,null=True,blank=True,default="Cambodia")
     
 
     def __str__(self):
@@ -185,6 +186,7 @@ class OrderProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     order = models.ForeignKey(OrderDetail   , on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    size =  models.ForeignKey(Sizes, on_delete=models.CASCADE)
     colorselection =models.ForeignKey(Colors  , on_delete=models.CASCADE,blank=True,null=True)
     imageproduct = models.ForeignKey(Images  , on_delete=models.CASCADE,blank=True,null=True)
 

@@ -277,7 +277,7 @@ class OrderDetailCreate(generics.CreateAPIView):
            product = Product.objects.get(id=product_data['id'])
            quantity = product_data['quantity']
            color = Colors.objects.get(id = product_data['colorselection'])
-           image = Images.objects.get(id =product_data['imageproduct'])
+           size = Sizes.objects.get(id =product_data['size'])
 
 
             # Check if enough stock is available 
@@ -288,11 +288,13 @@ class OrderDetailCreate(generics.CreateAPIView):
          # Create the OrderProduct
          
          
-           OrderProduct.objects.create(order=order,
+           OrderProduct.objects.create(
+                        order=order,
                                 product=product,
                                 quantity=quantity,
                                 colorselection =color,
-                                imageproduct = image
+      
+                                size = size
                                 
                                 
                                 

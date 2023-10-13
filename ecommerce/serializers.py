@@ -20,11 +20,20 @@ class CategorySerializerV2(serializers.ModelSerializer):
       fields = ['id', 'categoryname','imgid']
       
 class ColorSerialzer(serializers.ModelSerializer) :
+  imgid = ImageSerializer(many=False,read_only=True)
   class Meta:
     model = Colors
     fields= '__all__'      
+    
+    
+class SizeSerializer(serializers.ModelSerializer) :
+  class Meta:
+    model = Sizes
+    fields= '__all__'   
+        
 class AttributesSerialzer(serializers.ModelSerializer) :
   colorid = ColorSerialzer(many= True)
+  size = SizeSerializer(many=True)
   class Meta:
     model = Attributes
     fields= '__all__'      
@@ -32,7 +41,7 @@ class ProductSerializerV2(serializers.ModelSerializer):
     category =  CategorySerializerV2(many=False,read_only=False)
     owner = UserSerializer(many=False)
     imgid = ImageSerializer(many=True)
-    attribution = AttributesSerialzer(many=False,)
+    attribution = AttributesSerialzer(many=False)
     class Meta:
       model = Product
       fields ='__all__'
@@ -47,14 +56,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-
+    attribution = AttributesSerialzer(many=False)
+    imgid = ImageSerializer(many=True)
     class Meta:
       model = Product
       fields ='__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
+  
    product =  ProductSerializer(many=True,read_only=True)
+  
    imgid = ImageSerializer(many=False)
 
    class Meta:
@@ -102,12 +114,12 @@ class CustomerSerializerV2(serializers.ModelSerializer):
       fields = ('username','email','password')
 
 class CustomerSerializer(serializers.ModelSerializer):
-
+   imgid = ImageSerializer(many=False)
    class Meta:
       model =Customer
       # read_only_fields = ('password',)
 
-      fields = ['id','firstname','lastname','email','telephone','gender','imgid','password']
+      fields = ['id','firstname','lastname','email','telephone','gender','imgid','password','username']
  
  
  
@@ -143,9 +155,10 @@ class CustomerSerializerId(serializers.ModelSerializer):
       model =Customer
       fields = ['id','isowner']    
 class CustomerSerializerEdit(serializers.ModelSerializer):
+  
    class Meta:
      model = Customer
-     fields =('username','firstname','lastname','telephone')
+     fields =('username','firstname','lastname','telephone','gender','imgid')
   
 class OrderDetailStatusSerializer(serializers.ModelSerializer):
 
