@@ -32,9 +32,11 @@ urlpatterns = [
    #review product
 
 
-   path('review/product/',views.ReviewList.as_view(),name='review-product'),
+   path('review/product/<int:pk>',views.ReviewList.as_view(),name='review-product'),
    path('review/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
-   path('review/product/<int:pk>',views. ReviewProduct.as_view(),name='review-product-v2'),
+   
+   
+   path('review/pro/<int:pk>',views. ReviewProduct.as_view(),name='review-product-v2'),
     # Json Web Token
     # path('product/login', views.CustomTokenObtainPairView.as_view()),
     path('auth/login',views.logincustomer,name="login"),

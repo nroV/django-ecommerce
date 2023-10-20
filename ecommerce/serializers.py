@@ -8,11 +8,19 @@ class UserSerializer(serializers.ModelSerializer):
       model = User
       fields = ['username', 'email']
 class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
+      
+      class Meta:
        model = Images
+       
        fields = [ 'id','images']
    
-
+class ImageSerializerEdit(serializers.ModelSerializer):
+      
+      class Meta:
+       model = Images
+       
+       fields = [ 'id']
+   
 class CategorySerializerV2(serializers.ModelSerializer):
    imgid = ImageSerializer(many=False)
    class Meta:
@@ -47,13 +55,6 @@ class ProductSerializerV2(serializers.ModelSerializer):
       fields ='__all__'
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-  
-    class Meta:
-      model = ReviewRating
-      fields ='__all__'
-      read_only_fields = ('avg_rating',)
-
 
 class ProductSerializer(serializers.ModelSerializer):
     attribution = AttributesSerialzer(many=False)
@@ -65,17 +66,19 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
   
-   product =  ProductSerializer(many=True,read_only=True)
+   product =  ProductSerializerV2(many=True,read_only=True)
   
    imgid = ImageSerializer(many=False)
 
    class Meta:
       model = Category
-      fields = ['id', 'categoryname','product','imgid']
+      # fields = ['id', 'categoryname','product','imgid']
+      fields = '__all__'
 
 class OrderProductSerializer(serializers.ModelSerializer):
     
     product = ProductSerializerV2()
+    size = SizeSerializer(many=False)
     colorselection  = ColorSerialzer(many=False)
     imageproduct = ImageSerializer(many=False)
     # product_id = serializers.IntegerField(write_only=True)
@@ -84,7 +87,7 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderProduct
-        fields = ['product', 'quantity','colorselection','imageproduct']
+        fields = ['product', 'quantity','colorselection','imageproduct','size']
 
 
 
@@ -97,8 +100,10 @@ class CustomerSerializerResetPassword(serializers.ModelSerializer):
       model =Customer
       fields = ['email']
       
-      
+ 
+
 class CustomerSerializerLogin(serializers.ModelSerializer):
+  
   class Meta:
       model =Customer
       fields = ['id','email','password']
@@ -122,6 +127,11 @@ class CustomerSerializer(serializers.ModelSerializer):
       fields = ['id','firstname','lastname','email','telephone','gender','imgid','password','username']
  
  
+ 
+ 
+ 
+
+     
  
  
 class AddressSerializer(serializers.ModelSerializer):
@@ -155,11 +165,17 @@ class CustomerSerializerId(serializers.ModelSerializer):
       model =Customer
       fields = ['id','isowner']    
 class CustomerSerializerEdit(serializers.ModelSerializer):
-  
+  #  imgid=ImageSerializer(many=False)
+  #  imgid = serializers.PrimaryKeyRelatedField(many=False )
    class Meta:
      model = Customer
      fields =('username','firstname','lastname','telephone','gender','imgid')
-  
+class CustomerSerializerReview(serializers.ModelSerializer):
+   imgid=ImageSerializer(many=False)
+
+   class Meta:
+     model = Customer
+     fields =('username','firstname','lastname','telephone','gender','imgid')  
 class OrderDetailStatusSerializer(serializers.ModelSerializer):
 
     
@@ -171,3 +187,12 @@ class OrderDetailStatusSerializer(serializers.ModelSerializer):
 
       fields = '__all__'
 
+class ReviewSerializer(serializers.ModelSerializer):
+  
+  
+    customer = CustomerSerializerReview(many=False,read_only=True)
+    # product = ProductSerializer(many=False,read_only=True)
+    class Meta:
+      model = ReviewRating
+      fields ='__all__'
+      read_only_fields = ('avg_rating',)

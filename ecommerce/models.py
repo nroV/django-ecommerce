@@ -46,7 +46,7 @@ class Customer(AbstractBaseUser,models.Model):
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
-    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
+    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True,default=1)
     gender = models.CharField(max_length=25,null= False)
 
     def delete(self, *args, **kwargs):
@@ -107,7 +107,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category,on_delete= models.CASCADE,related_name= 'product')
     owner = models.ForeignKey(User,on_delete=models.CASCADE)    
     imgid = models.ManyToManyField(Images)
-    avg_rating = models.FloatField(validators=[MinValueValidator(1),MaxValueValidator(5)],default=0,blank=True,null=True)
+    avg_rating = models.FloatField(validators=[MinValueValidator(0),MaxValueValidator(5)],default=0,blank=True,null=True)
     discount = models.IntegerField(null=True,default=0)
     sell_rating = models.IntegerField(null=True,default=0)
     description  = models.CharField(null=False,default="This is a product description",max_length=100)

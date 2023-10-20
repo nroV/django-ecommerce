@@ -92,8 +92,10 @@ class ProductDiscount(generics.ListAPIView,PageNumberPagination):
 class ProductListSort(generics.ListAPIView,PageNumberPagination):
     serializer_class = ProductSerializerV2
     queryset = Product.objects.all().order_by('-price')
-   #  filter_backends = [DjangoFilterBackend,OrderingFilter]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['productname']
    #  ordering_fields = ['price','productname']
+    
     pagination_class = MyCustomPagination
     
     def get_queryset(self):
@@ -102,7 +104,14 @@ class ProductListSort(generics.ListAPIView,PageNumberPagination):
         q =super().get_queryset()
         bestseller = self.request.GET.get('best_selling',None)
         popular = self.request.GET.get('popular',None)
-
+        productname = self.request.GET.get('name',None)
+        print(bestseller)
+        
+        if productname is not None :
+           if productname.upper() =="DESC":
+            q = Product.objects.all().order_by('-productname')
+           else:
+            q = Product.objects.all().order_by('productname')
         if bestseller is not None:
            if bestseller.upper() =="DESC":
             q = Product.objects.all().order_by('-sell_rating')
@@ -133,20 +142,46 @@ class ProductList(generics.ListAPIView,PageNumberPagination):
   
     pagination_class = MyCustomPagination
     def get_queryset(self):
+    
+      
+        price = self.request.GET.get('prices', None)
+        q =super().get_queryset()
+        bestseller = self.request.GET.get('best_selling',None)
+        popular = self.request.GET.get('popular',None)
+        productname = self.request.GET.get('name',None)
+  
+        if productname is not None :
+           if productname.upper() =="DESC":
+            q = Product.objects.all().order_by('-productname')
+           else:
+            q = Product.objects.all().order_by('productname')
+        if bestseller is not None:
+           if bestseller.upper() =="DESC":
+            q = Product.objects.all().order_by('-sell_rating')
+           else:
+            q = Product.objects.all().order_by('sell_rating')
+        #if none order = "ASC"
+
+        if popular is not None:
+              
+           if popular.upper() =="DESC":
+            q = Product.objects.all().order_by('-avg_rating')
+           else:
+            q = Product.objects.all().order_by('avg_rating')
+        if price is not None:
+         if  price.upper() == "DESC":
+          q = Product.objects.all().order_by('-price')
+    
+         else :
+          q = Product.objects.all().order_by('price')
+        print(bestseller)
         min_price = self.request.GET.get('min_price', None)
         max_price = self.request.GET.get('max_price', None)
-        latest = self.request.GET.get('order',None)
-        print(latest)
-        if latest is not None:
-           if latest.lower() == "desc":
-              
-            self.queryset = self.queryset.all().order_by('-pk')
-           else:
-            self.queryset = self.queryset.all().order_by('pk')
+    
         if min_price is not None and max_price is not None:
-            self.queryset = self.queryset.filter(price__range=(min_price, max_price))
+            q = self.queryset.filter(price__range=(min_price, max_price))
 
-        return self.queryset
+        return q 
 
    # #  pagination_class
 
@@ -184,9 +219,11 @@ class CategoryCreate(generics.CreateAPIView):
 class CategoryList(generics.ListAPIView):
    serializer_class = CategorySerializer
    queryset = Category.objects.all()
-class CategoryRUD(generics.RetrieveUpdateDestroyAPIView):
+class CategoryRUD(generics.RetrieveUpdateDestroyAPIView,PageNumberPagination):
    serializer_class = CategorySerializer
    queryset = Category.objects.all()
+  
+   pagination_class = MyCustomPagination
 
    def destroy(self, request, *args, **kwargs):
       super().destroy(request, *args, **kwargs)
@@ -260,6 +297,8 @@ class OrderDetailCreate(generics.CreateAPIView):
          print(self.request.data)
          data = self.request.data
          add = get_object_or_404(Address,pk =self.kwargs['pk'])
+      
+   
         # Create the order
    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
          total = 0
@@ -311,8 +350,12 @@ class OrderDetailCreate(generics.CreateAPIView):
       #  serializer = self.get_serializer(order)
       #  return Response(serializer.data) 
            print(f"total: {total}")  
-  
+   
          order.amount = total
+         if(order.method.lower() == "online") :
+            order.ispaid = True
+         else:
+            order.ispaid = False
          order.save()
 
 #          send_mail(
@@ -521,7 +564,7 @@ class OrderUserView(generics.ListAPIView):
    def get_queryset(self):
     customer = get_object_or_404(Customer,pk = self.kwargs.get('pk',None) )
     print(customer)
-    order = OrderDetail.objects.filter(customer=customer)
+    order = OrderDetail.objects.filter(customer=customer).order_by('-id')
     return order
 
 
@@ -617,8 +660,14 @@ class ReviewList(generics.ListCreateAPIView):
    def perform_create(self, serializer):
 
       pro = get_object_or_404(Product,pk = self.request.data['product'])
-      oldreiview =ReviewRating.objects.filter(customer = serializer.validated_data['customer'])
-      if not oldreiview.exists():
+      customer = get_object_or_404(Customer,pk =self.kwargs.get('pk',None) )
+      print(self.kwargs.get('pk',None))
+      oldreiview = ReviewRating.objects.filter(product =  self.request.data['product'] )&ReviewRating.objects .filter(customer =self.kwargs.get('pk',None))
+
+      print(oldreiview)
+      # ReviewRating.objects.filter(
+      #    customer = self.kwargs.get('pk',None))
+      if not oldreiview.exists() :
 
 
         if pro.avg_rating == 0:
@@ -628,14 +677,29 @@ class ReviewList(generics.ListCreateAPIView):
         else:
          pro.avg_rating =  (pro.avg_rating +  serializer.validated_data['rating'] )/2
         pro.save()  
-        return serializer.save(product =pro )
+        return serializer.save(product =pro,customer =  customer)
       else:
-        raise ValidationError({
-           'message':'You cannot make a duplicate review only in 1 post'
-        })
+        theoldreview = ReviewRating.objects.get(product =  self.request.data['product'] )
+        print(oldreiview)
+        if pro.avg_rating == 0:
+         pro.avg_rating = serializer.validated_data['rating'] 
+
+       
+        else:
+         pro.avg_rating =  (pro.avg_rating +  serializer.validated_data['rating'] )/2
+        pro.save() 
+        
+        theoldreview.product = pro
+        theoldreview.customer = customer
+        theoldreview.rating = serializer.validated_data['rating'] 
+        theoldreview.description =  serializer.validated_data['description'] 
+        theoldreview.save()
+        return theoldreview.save()
       
-   def create(self, request, *args, **kwargs):
-      return super().create(request, *args, **kwargs)
+      #   raise ValidationError({
+      #      'message':'You cannot make a duplicate review only in 1 post'
+      #   })
+
 
 
 class ReviewProduct(generics.ListAPIView):
