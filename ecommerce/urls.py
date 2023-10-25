@@ -13,7 +13,8 @@ urlpatterns = [
    path('product/discount/',views.ProductDiscount.as_view(),name='list-product'),
    path('product/<int:pk>',views.ProductRUD.as_view(),name='retrieve-update-delete-product'),
    path('product/create',views.ProductCreate.as_view(),name='list-product'),
-
+   path('product/favorite/<int:pk>',views.ProductFavorite.as_view(),name='list-product'),
+   path('product/<int:pk>/favorite/',views.ProductFavoriteCRUD.as_view(),name='list-product'),
     #category
    path('category',views.CategoryList.as_view(),name='list-product'),
    
@@ -42,7 +43,8 @@ urlpatterns = [
     path('auth/login',views.logincustomer,name="login"),
     
     path('auth/register',views.register,name="register") ,
-    path('auth/google',views.socialauth,name="login-google"),
+    path('auth/google/register',views.socialauthregister,name="register-google"),
+        path('auth/google/login',views.socialauthlogin,name="login-google"),
    path('auth/update/<int:pk>',views.updateuserprofile,name="login-google-profile"),
      # Google Sign in Token
      

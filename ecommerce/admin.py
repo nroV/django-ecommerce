@@ -15,8 +15,9 @@ class CustomerAdmin(admin.ModelAdmin):
 # class OrderDetailAdmin(admin.ModelAdmin):
 #      list_display = ('id','created_date','product','qty','amount','method','status')
 
-
-
+class Favoriteadmin(admin.ModelAdmin):
+     list_display = ('id','user',)
+admin.site.register(Favorite,Favoriteadmin)
 admin.site.register(Product,ProductAdmin)
 admin.site.register(Category)
 # admin.site.register(Order)
@@ -31,6 +32,7 @@ admin.site.register(Colors)
 admin.site.register(SuperDeal)
 admin.site.register(OrderProduct)
 admin.site.register(PasswordResetCodes)
+
 
 
 

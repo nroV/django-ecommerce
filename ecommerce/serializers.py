@@ -116,8 +116,11 @@ class PasswordResetCodesSerializer(serializers.ModelSerializer):
 class CustomerSerializerV2(serializers.ModelSerializer):
   class Meta:
       model =Customer
-      fields = ('username','email','password')
-
+      fields = ('username','email','password','telephone')
+class CustomerSerializerV3(serializers.ModelSerializer):
+  class Meta:
+      model =Customer
+      fields = ('email',)
 class CustomerSerializer(serializers.ModelSerializer):
    imgid = ImageSerializer(many=False)
    class Meta:
@@ -196,3 +199,9 @@ class ReviewSerializer(serializers.ModelSerializer):
       model = ReviewRating
       fields ='__all__'
       read_only_fields = ('avg_rating',)
+      
+class FavoriteSerializer(serializers.ModelSerializer):
+   products = ProductSerializerV2(many=True,read_only=True)
+   class Meta:
+     model = Favorite
+     fields ='__all__'

@@ -54,7 +54,7 @@ from decimal import Decimal
 #      })
 
 class MyCustomPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 6
     page_size_query_param = 'page_size'
     
     
@@ -91,7 +91,7 @@ class ProductDiscount(generics.ListAPIView,PageNumberPagination):
        
 class ProductListSort(generics.ListAPIView,PageNumberPagination):
     serializer_class = ProductSerializerV2
-    queryset = Product.objects.all().order_by('-price')
+    queryset = Product.objects.all().order_by('-pk')
     filter_backends = [filters.SearchFilter]
     search_fields = ['productname']
    #  ordering_fields = ['price','productname']
@@ -211,8 +211,91 @@ class ProductCreate(generics.CreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+class ProductFavorite(generics.ListCreateAPIView):
+   serializer_class = FavoriteSerializer
+   queryset = Favorite.objects.all()
+   def get_queryset(self):
+      print(self.kwargs['pk'])
+      try:
+        user = get_object_or_404(Customer,pk = self.kwargs['pk'])
+        q = Favorite.objects.filter(user = user)
+        return q
+      except Favorite.DoesNotExist:
+       return Response(
+           status=status.HTTP_400_BAD_REQUEST)
+   def create(self, request, *args, **kwargs):
+        pro = get_object_or_404(Product,pk = self.kwargs['pk'])
+        fav = Favorite.objects.filter(products = pro)
+        print(fav)
+        print(pro)
+        if fav.exists():
+         print("It Exist")
+           
+         return Response({"status": "Product is in wishlist", 
+                          "code": status.HTTP_201_CREATED,
+                       }, status=status.HTTP_201_CREATED)
+        else:
+         pro = Product.objects.filter(pk =self.kwargs['pk'] )
+         print(self.request.data.get('user'))
+         user = get_object_or_404(Customer,pk = self.request.data.get('user'))
+      #check favorite
+      
+         try:
+          try:
+               oldfav = Favorite.objects.get(user = self.request.data.get('user'))
+               print(oldfav)
+               oldfav.products.add(pro[0].pk)
+               oldfav.save()
+               return Response({"result": "success ", 
+                          "code": status.HTTP_200_OK,
+                       }, status=status.HTTP_200_OK)
+          except Favorite.DoesNotExist:
+               
+    
+       
+           favorite = Favorite.objects.create(
+             user = user
+           )
+           favorite.products.set(pro)
+           favorite.save()
+           return Response({"result": favorite, 
+                          "code": status.HTTP_200_OK,
+                       }, status=status.HTTP_200_OK)
+         
+         except Favorite.DoesNotExist:
+          oldfav = Favorite.objects.get(user = self.request.data.get('user'))
+          instance = oldfav.save(products = pro,user = user )
+      
+          return Response({"result": instance, 
+                          "code": status.HTTP_200_OK,
+                       }, status=status.HTTP_200_OK)
+   # def perform_create(self, serializer):
+      
+   #    pro = Product.objects.filter(pk =self.kwargs['pk'] )
+   #    print(self.request.data.get('user'))
+   #    user = get_object_or_404(Customer,pk = self.request.data.get('user'))
+   #    #check favorite
+      
+   #    try:
+   #       oldfav = Favorite.objects.get(user = self.request.data.get('user'))
+   #       print(oldfav)
+   #       oldfav.products.add(pro[0].pk)
+       
+   #       favorite = oldfav.save()
+   #       return favorite
+         
+   #    except Favorite.DoesNotExist:
+   #     instance = serializer.save(products = pro,user = user )
+      
+   #    return instance
 
-
+     
+class ProductFavoriteCRUD(generics.RetrieveUpdateDestroyAPIView):
+   serializer_class = FavoriteSerializer
+   queryset = Favorite.objects.all()
+   def update(self, request, *args, **kwargs):
+      
+      return super().update(request, *args, **kwargs)
 class CategoryCreate(generics.CreateAPIView):
  serializer_class =CategorySerializerV2
 
@@ -932,7 +1015,7 @@ def logincustomer(request):
 @swagger_auto_schema(method='POST',request_body= CustomerSerializerV2)
 
 @api_view(['POST'])
-def socialauth(request):
+def socialauthregister(request):
   serializers = CustomerSerializerV2(data=request.data)
   print(request.data)
   if serializers.is_valid():
@@ -942,8 +1025,10 @@ def socialauth(request):
    thisfirstname = arr[0]
    thislastname = arr[1]
    thisusername = arr[len(  arr )-1]
+   thispassword = make_password( serializers.validated_data["password"])
    serializers.save(username = thisusername,firstname = thisfirstname,
-                    lastname = thislastname,telephone = '+41524204242'
+                    lastname = thislastname,telephone =  serializers.validated_data["telephone"],
+                    password = thispassword
                      )
    newuser = Customer.objects.get(email = serializers.validated_data["email"])
    confirmation_token = default_token_generator.make_token(newuser)
@@ -985,6 +1070,57 @@ def socialauth(request):
    return Response(serializers.errors,status=HTTP_400_BAD_REQUEST) 
 
    pass
+
+
+
+@swagger_auto_schema(method='POST',request_body= CustomerSerializerV3)
+
+@api_view(['POST'])
+def socialauthlogin(request):
+  serializers = CustomerSerializerV3(data=request.data)
+  print(request.data)
+  if serializers.is_valid():
+     
+     try:
+        customer = Customer.objects.get(email = serializers.validated_data['email'])
+        print(customer)
+     except Customer.DoesNotExist:
+        return Response({
+           "detail":"There are no email associate to that account"
+        },status=HTTP_400_BAD_REQUEST)
+   
+   
+     serialid = CustomerSerializerId (customer,many=False)
+     refresh = RefreshToken.for_user( customer )
+     token = {
+       'refresh': str(refresh),  
+       'access': str(refresh.access_token),
+       'user':serialid.data
+          }
+  
+     return Response( 
+      
+        token
+           
+        , status=status.HTTP_201_CREATED)
+
+    
+
+  
+
+     
+#   I/flutter ( 6751): nightpp19@gmail.com   userthis as email
+#   I/flutter ( 6751): 116512354859814328502 usethisasspassword
+#   I/flutter ( 6751): SIV SOVANPANHAVORN (Vorni)   
+
+  else:
+   return Response(serializers.errors,status=HTTP_400_BAD_REQUEST) 
+
+   pass
+
+
+
+
 
 @swagger_auto_schema(method='PUT', request_body= CustomerSerializerEdit)
 @api_view(['PUT'])

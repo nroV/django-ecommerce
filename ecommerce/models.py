@@ -47,7 +47,7 @@ class Customer(AbstractBaseUser,models.Model):
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True,default=1)
-    gender = models.CharField(max_length=25,null= False)
+    gender = models.CharField(max_length=25,null= False,blank=True,default="Other")
 
     def delete(self, *args, **kwargs):
         
@@ -101,7 +101,7 @@ class Attributes(models.Model):
     
 class Product(models.Model):
    
-    productname = models.CharField(max_length=25,null=False,error_messages= "product cannot be empty")
+    productname = models.CharField(max_length=45,null=False,error_messages= "product cannot be empty")
     price = models.FloatField(default=0)
     stockqty = models.IntegerField(default=0)
     category = models.ForeignKey(Category,on_delete= models.CASCADE,related_name= 'product')
@@ -209,3 +209,9 @@ class SuperDeal(models.Model):
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
     def __str__(self):
         return f"SuperDeal {self.superdeal_id} for {self.product.name}"    
+    
+class Favorite(models.Model):
+    products = models.ManyToManyField(Product,null=True,blank=True)
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
