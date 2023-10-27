@@ -103,6 +103,7 @@ class Product(models.Model):
    
     productname = models.CharField(max_length=45,null=False,error_messages= "product cannot be empty")
     price = models.FloatField(default=0)
+    isfavorite = models.BooleanField(default=False,blank=True,null=True)
     stockqty = models.IntegerField(default=0)
     category = models.ForeignKey(Category,on_delete= models.CASCADE,related_name= 'product')
     owner = models.ForeignKey(User,on_delete=models.CASCADE)    
@@ -152,8 +153,8 @@ class Address(models.Model):
     customer_id = models.ForeignKey(Customer, on_delete=models.CASCADE,related_name="user_address")
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=55)
-    latitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
-    longitude = models.DecimalField(max_digits=15, decimal_places=9,null=True)
+    latitude = models.DecimalField(max_digits=20,null=True,decimal_places=15)
+    longitude = models.DecimalField(max_digits=20,null=True,decimal_places=15)
     description = models.CharField(max_length=255,default="Current Location")
     country =  models.CharField(max_length=255,null=True,blank=True,default="Cambodia")
     

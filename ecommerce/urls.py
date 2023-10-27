@@ -14,7 +14,11 @@ urlpatterns = [
    path('product/<int:pk>',views.ProductRUD.as_view(),name='retrieve-update-delete-product'),
    path('product/create',views.ProductCreate.as_view(),name='list-product'),
    path('product/favorite/<int:pk>',views.ProductFavorite.as_view(),name='list-product'),
-   path('product/<int:pk>/favorite/',views.ProductFavoriteCRUD.as_view(),name='list-product'),
+   path('product/favorite/<int:pk>/delete',views.ProductFavoriteDestroy.as_view(),name='list-product'),
+
+   
+   
+   # path('product/<int:pk>/favorite/',views.ProductFavoriteCRUD.as_view(),name='list-product'),
     #category
    path('category',views.CategoryList.as_view(),name='list-product'),
    

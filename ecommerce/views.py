@@ -226,8 +226,8 @@ class ProductFavorite(generics.ListCreateAPIView):
    def create(self, request, *args, **kwargs):
         pro = get_object_or_404(Product,pk = self.kwargs['pk'])
         fav = Favorite.objects.filter(products = pro)
-        print(fav)
-        print(pro)
+      #   print(fav)
+      #   print(pro)
         if fav.exists():
          print("It Exist")
            
@@ -236,15 +236,20 @@ class ProductFavorite(generics.ListCreateAPIView):
                        }, status=status.HTTP_201_CREATED)
         else:
          pro = Product.objects.filter(pk =self.kwargs['pk'] )
-         print(self.request.data.get('user'))
+         # print(self.request.data.get('user'))
          user = get_object_or_404(Customer,pk = self.request.data.get('user'))
       #check favorite
       
          try:
           try:
                oldfav = Favorite.objects.get(user = self.request.data.get('user'))
-               print(oldfav)
+               # print(oldfav)
+               prod = Product.objects.get(pk = self.kwargs['pk'] )
+               print(prod)
+               prod.isfavorite = True
+               prod.save()
                oldfav.products.add(pro[0].pk)
+               print('Here?')
                oldfav.save()
                return Response({"result": "success ", 
                           "code": status.HTTP_200_OK,
@@ -253,12 +258,26 @@ class ProductFavorite(generics.ListCreateAPIView):
                
     
        
-           favorite = Favorite.objects.create(
+           instance = favorite = Favorite.objects.create(
              user = user
            )
-           favorite.products.set(pro)
+     
+           
+           for product in pro:
+            print(product)
+      
+            prod = Product.objects.get(pk = product.pk )
+            print(prod)
+            prod.isfavorite = True
+            prod.save()
+            
+            print(product.isfavorite)
+            
+     
+            favorite.products.add(product.pk)
+           
            favorite.save()
-           return Response({"result": favorite, 
+           return Response({"result": "success", 
                           "code": status.HTTP_200_OK,
                        }, status=status.HTTP_200_OK)
          
@@ -269,6 +288,8 @@ class ProductFavorite(generics.ListCreateAPIView):
           return Response({"result": instance, 
                           "code": status.HTTP_200_OK,
                        }, status=status.HTTP_200_OK)
+  
+   
    # def perform_create(self, serializer):
       
    #    pro = Product.objects.filter(pk =self.kwargs['pk'] )
@@ -289,13 +310,53 @@ class ProductFavorite(generics.ListCreateAPIView):
       
    #    return instance
 
-     
+class ProductFavoriteDestroy(generics.ListCreateAPIView):
+   serializer_class = FavoriteSerializer
+   queryset = Favorite.objects.all()
+
+   def create(self, request, *args, **kwargs):
+        pro = get_object_or_404(Product,pk = self.kwargs['pk'])
+  
+    
+        fav = Favorite.objects.filter(products = pro)
+      #   print(fav)
+      #   print(pro)
+        if fav.exists():
+         oldfav = Favorite.objects.get(user = self.request.data.get('user'))
+         d = oldfav.products.get(pk = self.kwargs['pk'])
+         oldfav.products.remove(d)
+         if(oldfav.products.count() == 0) :
+            print("true")
+            print(oldfav.products.count())
+            oldfav.delete()
+          
+         else:
+          pro.isfavorite = False
+          pro.save()  
+          instance = oldfav.save()
+         
+          print("Delete")
+         
+         
+           
+          return Response({"result": "Product has been deleted", 
+                          "code": status.HTTP_201_CREATED,
+                       }, status=status.HTTP_201_CREATED)
+        else:
+      
+         return Response({"result": "not exist", 
+                          "code": status.HTTP_404_NOT_FOUND,
+                       }, status=status.HTTP_404_NOT_FOUND)
+  
+   
 class ProductFavoriteCRUD(generics.RetrieveUpdateDestroyAPIView):
    serializer_class = FavoriteSerializer
    queryset = Favorite.objects.all()
    def update(self, request, *args, **kwargs):
       
       return super().update(request, *args, **kwargs)
+   
+   
 class CategoryCreate(generics.CreateAPIView):
  serializer_class =CategorySerializerV2
 
