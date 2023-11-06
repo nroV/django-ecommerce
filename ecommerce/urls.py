@@ -8,15 +8,17 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
+   path('message/<int:userid>',views.MessagePost.as_view(),name='msg-sender'),
    path('product',views.ProductList.as_view(),name='list-product'),
    path('product/sort',views.ProductListSort.as_view(),name='list-product'),
    path('product/discount/',views.ProductDiscount.as_view(),name='list-product'),
    path('product/<int:pk>',views.ProductRUD.as_view(),name='retrieve-update-delete-product'),
    path('product/create',views.ProductCreate.as_view(),name='list-product'),
    path('product/favorite/<int:pk>',views.ProductFavorite.as_view(),name='list-product'),
+   path('product/favorites/<int:pk>/<int:user>',views.ProductFavoriteById.as_view(),name='list-product'),
    path('product/favorite/<int:pk>/delete',views.ProductFavoriteDestroy.as_view(),name='list-product'),
 
-   
+   path('superdeal/product',views.SuperDealList.as_view()),
    
    # path('product/<int:pk>/favorite/',views.ProductFavoriteCRUD.as_view(),name='list-product'),
     #category
@@ -40,7 +42,8 @@ urlpatterns = [
    path('review/product/<int:pk>',views.ReviewList.as_view(),name='review-product'),
    path('review/<int:pk>',views. ReviewRUD.as_view(),name='review-product'),
    
-   
+ 
+ 
    path('review/pro/<int:pk>',views. ReviewProduct.as_view(),name='review-product-v2'),
     # Json Web Token
     # path('product/login', views.CustomTokenObtainPairView.as_view()),
@@ -54,6 +57,7 @@ urlpatterns = [
      
     path('auth/reset',views.ResetPW,name="reset-password1"),
     path('auth/reset/verify',views.VerifyCodePW,name="reset-password2"),
+      path('auth/reset/password',views.ResetVerify,name="reset-password3"),
     path('auth/user/<int:pk>',views.finduser,name="user"),
     path('activate/', views.activate, name='activate'),
 

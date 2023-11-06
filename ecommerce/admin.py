@@ -5,7 +5,13 @@ from django.contrib import admin
 from . models import *
 # Register your models here.
 
-
+class MessageAdmin(admin.ModelAdmin):
+     list_display = (
+          'id',
+          'title',
+          'user'
+          
+          ,)
 class ProductAdmin(admin.ModelAdmin):
      list_display = ('id','productname','price','stockqty','category','owner',)
 
@@ -26,6 +32,7 @@ admin.site.register(OrderDetail)
 admin.site.register(ReviewRating)
 admin.site.register(Address)
 admin.site.register(Sizes)
+admin.site.register(Message,MessageAdmin)
 admin.site.register(Images)
 admin.site.register(Attributes)
 admin.site.register(Colors)

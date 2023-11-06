@@ -75,6 +75,7 @@ class Category(models.Model):
 
 class Colors(models.Model):
     color = models.CharField(max_length=25)
+    code = models.CharField(max_length=10,default="#EEEEEE",blank=True,null=True)
     imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
     desc = models.CharField(max_length=25,default='color',null=True,blank=True)
     def __str__(self) :
@@ -90,6 +91,7 @@ class Attributes(models.Model):
     size = models.ManyToManyField(Sizes,null=True,blank=True)
     colorid = models.ManyToManyField(Colors,blank=True,null=True)
     weight = models.FloatField(null=True,blank=True)
+    unit = models.CharField(null=True,default="kg",blank=True,max_length=25)
     brand = models.CharField(max_length=25,null=True,blank=True)
     model = models.CharField(max_length=25,null=True,blank=True)
     material_name = models.CharField(max_length=100,null=True,blank=True)
@@ -103,7 +105,6 @@ class Product(models.Model):
    
     productname = models.CharField(max_length=45,null=False,error_messages= "product cannot be empty")
     price = models.FloatField(default=0)
-    isfavorite = models.BooleanField(default=False,blank=True,null=True)
     stockqty = models.IntegerField(default=0)
     category = models.ForeignKey(Category,on_delete= models.CASCADE,related_name= 'product')
     owner = models.ForeignKey(User,on_delete=models.CASCADE)    
@@ -205,14 +206,23 @@ class ReviewRating(models.Model):
         return f"Review Rating {self.id}"
 class SuperDeal(models.Model):
     dealname = models.CharField(max_length=25,null=True,blank=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    description = models.TextField(max_length=100,null=True,blank=True)
+    product = models.ManyToManyField (Product)
     discount = models.DecimalField(max_digits=10, decimal_places=2)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
     def __str__(self):
-        return f"SuperDeal {self.superdeal_id} for {self.product.name}"    
+        return f"SuperDeal {self.dealname} for {self.product.name}"    
     
 class Favorite(models.Model):
     products = models.ManyToManyField(Product,null=True,blank=True)
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+class Message(models.Model):
+
+    title  = models.TextField(max_length=125,null=True,blank=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE ,related_name="user")
+    

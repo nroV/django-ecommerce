@@ -55,7 +55,11 @@ class ProductSerializerV2(serializers.ModelSerializer):
       fields ='__all__'
 
 
-
+class MessageSerializer(serializers.ModelSerializer):
+  user = UserSerializer(many=False,read_only=True)
+  class Meta:
+    model = Message
+    fields ='__all__'
 class ProductSerializer(serializers.ModelSerializer):
     attribution = AttributesSerialzer(many=False)
     imgid = ImageSerializer(many=True)
@@ -100,7 +104,12 @@ class CustomerSerializerResetPassword(serializers.ModelSerializer):
       model =Customer
       fields = ['email']
       
- 
+class SuperDealSerializer(serializers.ModelSerializer) :
+  product = ProductSerializerV2(many=True)
+  imgid = ImageSerializer(many=False)
+  class Meta:
+    model = SuperDeal
+    fields='__all__'
 
 class CustomerSerializerLogin(serializers.ModelSerializer):
   
@@ -194,7 +203,7 @@ class ReviewSerializer(serializers.ModelSerializer):
   
   
     customer = CustomerSerializerReview(many=False,read_only=True)
-    # product = ProductSerializer(many=False,read_only=True)
+    product = ProductSerializer(many=False,read_only=True)
     class Meta:
       model = ReviewRating
       fields ='__all__'
