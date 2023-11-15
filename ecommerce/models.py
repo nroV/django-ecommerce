@@ -18,7 +18,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Images(models.Model):
-    images = models.ImageField(upload_to="images", 
+    images = models.ImageField(upload_to="images/", 
                                 max_length=100, default=None, blank=False, null=False,
                                 error_messages='image cannot be empty'
                                 )
@@ -46,7 +46,7 @@ class Customer(AbstractBaseUser,models.Model):
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
-    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True,default=1)
+    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
     gender = models.CharField(max_length=25,null= False,blank=True,default="Other")
 
     def delete(self, *args, **kwargs):
@@ -74,9 +74,11 @@ class Category(models.Model):
     
 
 class Colors(models.Model):
+    
     color = models.CharField(max_length=25)
     code = models.CharField(max_length=10,default="#EEEEEE",blank=True,null=True)
     imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
+    price = models.FloatField(default=0)
     desc = models.CharField(max_length=25,default='color',null=True,blank=True)
     def __str__(self) :
         return f"  {self.pk} {self.color} {self.desc} "
@@ -171,7 +173,8 @@ class OrderDetail(models.Model):
     shipped_at = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now= True)
     method = models.CharField(max_length=20,null=False,blank=True,default="Cash")
-    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    amount =  models.DecimalField(max_digits=10, decimal_places=2,default=0)  # Adjust max_digits and decimal_places as needed
+
     ispaid = models.BooleanField(default=False)
     status = models.CharField(max_length=20,default="Pending")
     address = models.ForeignKey(Address,null=False,blank=False ,on_delete=models.CASCADE)

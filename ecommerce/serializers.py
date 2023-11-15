@@ -131,7 +131,7 @@ class CustomerSerializerV3(serializers.ModelSerializer):
       model =Customer
       fields = ('email',)
 class CustomerSerializer(serializers.ModelSerializer):
-   imgid = ImageSerializer(many=False)
+   imgid = ImageSerializer(many=False,read_only=True)
    class Meta:
       model =Customer
       # read_only_fields = ('password',)

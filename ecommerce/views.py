@@ -1,8 +1,30 @@
 import os
 import bcrypt
+import socket
+import requests
+
+from decimal import Decimal, ROUND_DOWN
+from rest_framework.pagination import PageNumberPagination
+
+class MyCustomPagination(PageNumberPagination):
+    page_size = 9
+    page_size_query_param = 'page_size'
+    
+    
+    def get_paginated_response(self, data):
+        return Response({
+            'page_per_query': self.page_size,
+            'page_size': self.page.paginator.count,
+            'total_pages': self.page.paginator.num_pages,
+            'current_page_number': self.page.number,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data,
+        })
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password, check_password
 from drf_yasg.utils import swagger_auto_schema
+import datetime
 
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -25,7 +47,11 @@ from django.shortcuts import get_object_or_404,get_list_or_404
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
+from django.core.mail import send_mail,EmailMultiAlternatives
+
+from django.template.loader import render_to_string
+
+from django.utils.html import strip_tags
 import stripe
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import *
@@ -53,26 +79,14 @@ from decimal import Decimal
 #         "message":   'product not found'
 #      })
 
-class MyCustomPagination(PageNumberPagination):
-    page_size = 6
-    page_size_query_param = 'page_size'
-    
-    
-    def get_paginated_response(self, data):
-        return Response({
-            'page_per_query': self.page_size,
-            'page_size': self.page.paginator.count,
-            'total_pages': self.page.paginator.num_pages,
-            'current_page_number': self.page.number,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data,
-        })
-class ProductListFilter(generics.ListAPIView,PageNumberPagination):
+
+
+class ProductListFilter(generics.ListAPIView):
     serializer_class = ProductSerializerV2
     queryset = Product.objects.all()
 
-    pagination_class = MyCustomPagination
+    pagination_class = MyCustomPagination  # Set your custom pagination class here
+
 
   
 
@@ -437,151 +451,7 @@ class CategoryRUD(generics.RetrieveUpdateDestroyAPIView,PageNumberPagination):
       return Response({"status": "success", "code": status.HTTP_200_OK,
                         "message": "category deleted successfully"}, status=status.HTTP_200_OK)
 
-class OrderDetailCreate(generics.CreateAPIView):
-   serializer_class =  OrderDetailSerializer
-
-#    def perform_create(self, serializer):
-#     print(self.request.data)
-#     data = self.request.data
-#     add = get_object_or_404(Address,pk =self.kwargs['pk'])
-#         # Create the order
-#    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
-#     total = 0
-  
-#     order = OrderDetail.objects.create(
-#        customer = serializer.validated_data['customer'],  
-#          amount = total,
-#          address = add,
-#          method = serializer.validated_data['method']
-#          )
-
-#         # Process each product
- 
-#     for product_data in data['products']:
-#        product = Product.objects.get(id=product_data['id'])
-#        quantity = product_data['quantity']
-
-
-#             # Check if enough stock is available
-#        if product.stockqty < quantity:
-#                 return Response({"error": f"Not enough stock available for product {product.id}"})
-
-#             # Create the OrderProduct
-#          # Create the OrderProduct
-#        OrderProduct.objects.create(order=order, product=product, quantity=quantity)
-#        total +=   (quantity * product.price)
-         
-
-#         # Update the stock quantity of the product
-#        product.stockqty -= quantity
-#        #Increase product selling
-#        product.sell_rating+= 1
-#        product.save()
- 
-#       #  serializer = self.get_serializer(order)
-#       #  return Response(serializer.data) 
-#     print(f"total: {total}")  
-  
-#     order.amount = total
-#     order.save()
-  
-#     send_mail(
-#     f"Order {   order.id}",
-#     """
-#   Your order has been placed
-#   thanks your for your order
-# """,
-#     "Nightpp19@gmail.com",
-#      [ order.customer.email ],
-#      fail_silently=False,
-#    )
-  
-  
-
-   def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-         print(self.request.data)
-         data = self.request.data
-         add = get_object_or_404(Address,pk =self.kwargs['pk'])
-      
    
-        # Create the order
-   #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
-         total = 0
-  
-         order = OrderDetail.objects.create(
-           customer = serializer.validated_data['customer'],  
-            amount = total,
-         address = add,
-         method = serializer.validated_data['method']
-         )
-
-        # Process each product
- 
-         for product_data in data['products']:
-           product = Product.objects.get(id=product_data['id'])
-           quantity = product_data['quantity']
-           color = Colors.objects.get(id = product_data['colorselection'])
-           size = Sizes.objects.get(id =product_data['size'])
-
-
-            # Check if enough stock is available 
-           if product.stockqty < quantity:
-                return Response({"error": f"Not enough stock available for product {product.id}"})
-
-            # Create the OrderProduct
-         # Create the OrderProduct
-         
-         
-           OrderProduct.objects.create(
-                        order=order,
-                                product=product,
-                                quantity=quantity,
-                                colorselection =color,
-      
-                                size = size
-                                
-                                
-                                
-                                )
-           total +=   (quantity * product.price)
-         
-
-        # Update the stock quantity of the product
-           product.stockqty -= quantity
-       #Increase product selling
-           product.sell_rating+= 1
-           product.save()
- 
-      #  serializer = self.get_serializer(order)
-      #  return Response(serializer.data) 
-           print(f"total: {total}")  
-   
-         order.amount = total
-         if(order.method.lower() == "online") :
-            order.ispaid = True
-         else:
-            order.ispaid = False
-         order.save()
-
-#          send_mail(
-#     f"Order {   order.id}",
-#     """
-#   Your order has been placed
-#   thanks your for your order
-# """,
-#     "Nightpp19@gmail.com",
-#      [ order.customer.email ],
-#      fail_silently=False,
-#    )
-          
-         return Response({
-                "data": serializer.data,
-                "id": order.id # Access the id of the created object
-              }, status=status.HTTP_201_CREATED)
-  
-        
   
 # def create(self, request, *args, **kwargs):
 #     data = request.data
@@ -646,37 +516,6 @@ class OrderDetailCreate(generics.CreateAPIView):
 #         })
 
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class OrderDetailCreateV2(generics.CreateAPIView):
-   serializer_class = OrderDetailSerializer
-    
-   def perform_create(self, serializer):
-    print("hello")
-    pk =  self.kwargs.get('pid',None)
-
-
-    pro = Product.objects.get(pk = pk)
-    pro.stockqty = pro.stockqty - serializer.validated_data['qty']
-    total = pro.price * serializer.validated_data['qty']
-    pro.save()
-
-    obj = serializer.save(customer = serializer.validated_data['customer'],amount =    total,product =  pro )
-
-    useremail = obj.customer.email
-
-
-    instance = OrderDetail.objects.create(order_id = obj.id, customer = serializer.validated_data['customer'] )
-    send_mail(
-    f"Order {instance.order_id}",
-    """
-Your order has been placed
-thanks your for your order
-""",
-    "Nightpp19@gmail.com",
-     [ useremail ],
-     fail_silently=False,
-   )
-     
 
 
 
@@ -1053,6 +892,13 @@ from django_filters.rest_framework import *
 from django.conf import settings
 import random
 from decimal import Decimal
+
+
+
+
+
+
+
 # Create your views here.
 
 # @api_view(['GET'])
@@ -1074,8 +920,10 @@ from decimal import Decimal
 #         "message":   'product not found'
 #      })
 
+
+
 class MyCustomPagination(PageNumberPagination):
-    page_size = 6
+    page_size = 9
     page_size_query_param = 'page_size'
     
     
@@ -1089,6 +937,7 @@ class MyCustomPagination(PageNumberPagination):
             'previous': self.get_previous_link(),
             'results': data,
         })
+
 class ProductListFilter(generics.ListAPIView,PageNumberPagination):
     serializer_class = ProductSerializerV2
     queryset = Product.objects.all()
@@ -1398,65 +1247,6 @@ class CategoryRUD(generics.RetrieveUpdateDestroyAPIView,PageNumberPagination):
 
 class OrderDetailCreate(generics.CreateAPIView):
    serializer_class =  OrderDetailSerializer
-
-#    def perform_create(self, serializer):
-#     print(self.request.data)
-#     data = self.request.data
-#     add = get_object_or_404(Address,pk =self.kwargs['pk'])
-#         # Create the order
-#    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
-#     total = 0
-  
-#     order = OrderDetail.objects.create(
-#        customer = serializer.validated_data['customer'],  
-#          amount = total,
-#          address = add,
-#          method = serializer.validated_data['method']
-#          )
-
-#         # Process each product
- 
-#     for product_data in data['products']:
-#        product = Product.objects.get(id=product_data['id'])
-#        quantity = product_data['quantity']
-
-
-#             # Check if enough stock is available
-#        if product.stockqty < quantity:
-#                 return Response({"error": f"Not enough stock available for product {product.id}"})
-
-#             # Create the OrderProduct
-#          # Create the OrderProduct
-#        OrderProduct.objects.create(order=order, product=product, quantity=quantity)
-#        total +=   (quantity * product.price)
-         
-
-#         # Update the stock quantity of the product
-#        product.stockqty -= quantity
-#        #Increase product selling
-#        product.sell_rating+= 1
-#        product.save()
- 
-#       #  serializer = self.get_serializer(order)
-#       #  return Response(serializer.data) 
-#     print(f"total: {total}")  
-  
-#     order.amount = total
-#     order.save()
-  
-#     send_mail(
-#     f"Order {   order.id}",
-#     """
-#   Your order has been placed
-#   thanks your for your order
-# """,
-#     "Nightpp19@gmail.com",
-#      [ order.customer.email ],
-#      fail_silently=False,
-#    )
-  
-  
-
    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -1467,7 +1257,8 @@ class OrderDetailCreate(generics.CreateAPIView):
    
         # Create the order
    #  order = OrderDetail.objects.create(customer = serializer.validated_data['customer'])
-         total = 0
+         total = Decimal('0')  # Initialize as a Decimal
+
   
          order = OrderDetail.objects.create(
            customer = serializer.validated_data['customer'],  
@@ -1477,18 +1268,37 @@ class OrderDetailCreate(generics.CreateAPIView):
          )
 
         # Process each product
- 
+         product_lines = []
+         pro = []
+  
          for product_data in data['products']:
+           print("Loop")
            product = Product.objects.get(id=product_data['id'])
+    
+
+
+
+
            quantity = product_data['quantity']
            color = Colors.objects.get(id = product_data['colorselection'])
            size = Sizes.objects.get(id =product_data['size'])
-
-
+           product_lines.append(f"{product.productname} {quantity} {product.price}")
+         #   element!.price - ( element!.price * (double.parse( element.discount.toString() )/100)).truncateToDouble();
+           print(color.imgid.images)
+           pro.append({
+              "name":product.productname,
+              "price":(color.price - (color.price * (product.discount/100) )),
+              "quantity":quantity,
+              "color":color.color,
+              "size":size.size,
+              "imageurl":color.imgid.images.url,
+              "discount":product.discount
+           })
             # Check if enough stock is available 
            if product.stockqty < quantity:
                 return Response({"error": f"Not enough stock available for product {product.id}"})
-
+    
+ 
             # Create the OrderProduct
          # Create the OrderProduct
          
@@ -1504,7 +1314,19 @@ class OrderDetailCreate(generics.CreateAPIView):
                                 
                                 
                                 )
-           total +=   (quantity * product.price)
+          
+           discount_decimal = Decimal(product.discount) / Decimal('100')
+           color_price = Decimal(color.price)
+           calculated_price = color_price - (color_price * discount_decimal)
+           line_total = Decimal(quantity) * calculated_price
+           total += line_total
+         #   total +=   (quantity * (color.price - (color.price * (product.discount/100) )))
+         #   total += quantity * color.price 
+         
+         #   print(quantity)
+         #   print((color.price - (color.price * (product.discount/100) )))
+         #   print(color.price)
+         #   print(total)
          
 
         # Update the stock quantity of the product
@@ -1515,25 +1337,96 @@ class OrderDetailCreate(generics.CreateAPIView):
  
       #  serializer = self.get_serializer(order)
       #  return Response(serializer.data) 
-           print(f"total: {total}")  
-   
-         order.amount = total
+         #   print(f"total: {total}")  
+         print(total)
+         order.amount = total.quantize(Decimal('.01'), rounding=ROUND_DOWN)  # Round down to 2 decimal places
+ 
+         print( order.amount)
+         
          if(order.method.lower() == "online") :
             order.ispaid = True
          else:
             order.ispaid = False
          order.save()
+         order_products = "\n".join(product_lines)
+       
+         
 
-#          send_mail(
-#     f"Order {   order.id}",
-#     """
-#   Your order has been placed
-#   thanks your for your order
-# """,
+       
+         date_string = str(order.shipped_at)
+
+# create a datetime object from the string
+         date_object = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S.%f%z')
+
+# convert the datetime object to a string in the desired format
+         formatted_date_string = date_object.strftime('%d-%m-%Y')
+         subject =   'Order Comfirm'
+         
+         print(pro)
+         
+         # order.amount
+         # order.ispaid
+      #    context = {
+      #       "order":order,
+      #       "products":pro,
+      #        "total":total,
+      #        "url":"http://localhost:8000"
+            
+      #    }
+      #    html_message = render_to_string("Order.html",context)
+      #    plain_msg = strip_tags(html_message)
+        
+        
+     
+        
+      #    message = EmailMultiAlternatives(
+      #       subject=subject,
+      #       from_email="Nightpp19@gmail.com",
+      #       to=[order.customer.email],
+      #       body=plain_msg,
+            
+            
+            
+            
+      #   )
+        
+      #    message.attach_alternative(html_message,"text/html")
+      #    message.send()
+         
+#        send_mail(
+#     f"Order #{order.id} Confirmation - TENH EY ",
+#     f"""
+     
+#     {order.customer.username},
+#     Your order is on its way. Thank you for shopping with us. We're sure you'll love our products. Here are the details of your order:
+
+#     **ORDER SUMMARY:**
+#     ------------------------------------------------------------------------------------------------
+
+#     Order #: {order.id}
+#     Order Date: {       formatted_date_string}
+#     Order Total: $ {order.amount}
+
+#     **SHIPPING ADDRESS:** 
+#     {order.address.street}
+
+#     **ITEMS SHIPPED:**
+
+#      {order_products}
+     
+     
+
+#     We think your new items will look/work great paired with:
+
+#     If you have any questions or need further assistance,
+#     please don't hesitate to contact us at Nightpp19@gmail.com.
+
+#     Best, TENH EY ECOMMERCE Team
+#     """,
 #     "Nightpp19@gmail.com",
-#      [ order.customer.email ],
-#      fail_silently=False,
-#    )
+#     [order.customer.email],
+#     fail_silently=False,
+# )
           
          return Response({
                 "data": serializer.data,
@@ -1606,35 +1499,35 @@ class OrderDetailCreate(generics.CreateAPIView):
 
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class OrderDetailCreateV2(generics.CreateAPIView):
-   serializer_class = OrderDetailSerializer
+# class OrderDetailCreateV2(generics.CreateAPIView):
+#    serializer_class = OrderDetailSerializer
     
-   def perform_create(self, serializer):
-    print("hello")
-    pk =  self.kwargs.get('pid',None)
+#    def perform_create(self, serializer):
+#     print("hello")
+#     pk =  self.kwargs.get('pid',None)
 
 
-    pro = Product.objects.get(pk = pk)
-    pro.stockqty = pro.stockqty - serializer.validated_data['qty']
-    total = pro.price * serializer.validated_data['qty']
-    pro.save()
+#     pro = Product.objects.get(pk = pk)
+#     pro.stockqty = pro.stockqty - serializer.validated_data['qty']
+#     total = pro.price * serializer.validated_data['qty']
+#     pro.save()
 
-    obj = serializer.save(customer = serializer.validated_data['customer'],amount =    total,product =  pro )
+#     obj = serializer.save(customer = serializer.validated_data['customer'],amount =    total,product =  pro )
 
-    useremail = obj.customer.email
+#     useremail = obj.customer.email
 
 
-    instance = OrderDetail.objects.create(order_id = obj.id, customer = serializer.validated_data['customer'] )
-    send_mail(
-    f"Order {instance.order_id}",
-    """
-Your order has been placed
-thanks your for your order
-""",
-    "Nightpp19@gmail.com",
-     [ useremail ],
-     fail_silently=False,
-   )
+#     instance = OrderDetail.objects.create(order_id = obj.id, customer = serializer.validated_data['customer'] )
+#     send_mail(
+#     f"Order {instance.order_id}",
+#     """
+# Your order has been placed
+# thanks your for your order
+# """,
+#     "Nightpp19@gmail.com",
+#      [ useremail ],
+#      fail_silently=False,
+#    )
      
 
 
@@ -1998,14 +1891,34 @@ def ResetPW(request):
       if customer :
          # hash_pw = make_password(serializers.data['password'])
          # serializers.save(password = hash_pw)
-         send_mail(
-            'Reset Password',
-            f'Please enter your verfication code to change your password thanks you bellow {verification_code }',
-            'Nightpp19@gmail.com',
-            [serializers.validated_data['email']],
-            fail_silently=False,
+      #    send_mail(
+      #       'Reset Password',
+      #       f'Please enter your verfication code to change your password thanks you bellow {verification_code }',
+      #       'Nightpp19@gmail.com',
+      #       [serializers.validated_data['email']],
+      #       fail_silently=False,
 
+      #   )
+         subject =   'Reset Password'
+         html_message = render_to_string("Reset.html",{
+           "verification":verification_code
+      
+           
+        })
+         plain_msg = strip_tags(html_message)
+        
+         message = EmailMultiAlternatives(
+            subject=subject,
+            from_email="Nightpp19@gmail.com",
+            to=[serializers.validated_data['email']],
+            body=plain_msg,
+            
+            
+            
         )
+        
+         message.attach_alternative(html_message,"text/html")
+         message.send()
          return Response({
             "message":"Please verify an email that we have request"
          },status=HTTP_202_ACCEPTED)
@@ -2313,15 +2226,16 @@ def register(request):
         activation_link = f'{activate_link_url}?user_id={newuser.id}&confirmation_token={confirmation_token}'
 
         # Send email with activation link
-        host = request.get_host()
+      #   host = request.get_host()
 
-        send_mail(
-            'Activate your account',
-            f'Please click on the following link to activate your account: {host}/{activation_link}>',
-            'Nightpp19@gmail.com',
-            [newuser.email],
-            fail_silently=False,
-      )
+      #   send_mail(
+      #       'Activate your account',
+      #       f'Please click on the following link to activate your account: {host}/{activation_link}>',
+      #       'Nightpp19@gmail.com',
+      #       [newuser.email],
+      #       fail_silently=False,
+      # )
+      
    
    #      refresh = RefreshToken.for_user(newuser)
    #      token = {
@@ -2329,7 +2243,22 @@ def register(request):
    #      'access': str(refresh.access_token),
    #   }
       #   return Response(token)
-       
+      
+        subject =   'Activate your account'
+        myrecipent = newuser.email  
+        html_message = render_to_string("Comfirm.html")
+        plain_msg = strip_tags(html_message)
+        
+        message = EmailMultiAlternatives(
+            subject=subject,
+            from_email="Nightpp19@gmail.com",
+            to=[newuser.email],
+            body=plain_msg,
+            
+        )
+        
+        message.attach_alternative(html_message,"text/html")
+        message.send()
         return Response( {
            "message":"An email has sent to your associated account"
         }, status=status.HTTP_201_CREATED)
@@ -2583,15 +2512,18 @@ def register(request):
         activation_link = f'{activate_link_url}?user_id={newuser.id}&confirmation_token={confirmation_token}'
 
         # Send email with activation link
-        host = request.get_host()
+      #   host = request.get_host()
+        print(request.get_host())
 
-        send_mail(
-            'Activate your account',
-            f'Please click on the following link to activate your account: {host}/{activation_link}>',
-            'Nightpp19@gmail.com',
-            [newuser.email],
-            fail_silently=False,
-      )
+        host = f"http://{request.get_host()}" 
+   
+      #   send_mail(
+      #       'Activate your account',
+      #       f'Please click on the following link to activate your account: {host}/{activation_link}>',
+      #       'Nightpp19@gmail.com',
+      #       [newuser.email],
+      #       fail_silently=False,
+      # )
    
    #      refresh = RefreshToken.for_user(newuser)
    #      token = {
@@ -2599,7 +2531,27 @@ def register(request):
    #      'access': str(refresh.access_token),
    #   }
       #   return Response(token)
-       
+        subject =   'Activate your account'
+        myrecipent = newuser.email  
+        html_message = render_to_string("Comfirm.html",{
+           "host":host,
+           "activate_link":activation_link
+           
+        })
+        plain_msg = strip_tags(html_message)
+        
+        message = EmailMultiAlternatives(
+            subject=subject,
+            from_email="Nightpp19@gmail.com",
+            to=[newuser.email],
+            body=plain_msg,
+            
+            
+            
+        )
+        
+        message.attach_alternative(html_message,"text/html")
+        message.send()
         return Response( {
            "message":"An email has sent to your associated account"
         }, status=status.HTTP_201_CREATED)
