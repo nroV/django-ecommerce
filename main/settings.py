@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+import django_heroku
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,13 +91,21 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'ss2', 
+    #     'USER': 'postgres',
+    #     'PASSWORD': '1111',
+    #     'HOST': 'localhost', 
+    #     'PORT': '5433',
+    # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ss2', 
-        'USER': 'postgres',
-        'PASSWORD': '1111',
-        'HOST': 'localhost', 
-        'PORT': '5433',
+        'NAME': 'dcrkbt86tpmtj0', 
+        'USER': 'dbulckmibzognd',
+        'PASSWORD': '88fbd2ba8d4f8e14caf0349b8fd820960edff309a32c4bdfad1c20f563995ccc',
+        'HOST': 'ec2-44-206-204-65.compute-1.amazonaws.com', 
+        'PORT': '5432',
     }
 }
 
@@ -180,6 +189,7 @@ EMAIL_HOST_PASSWORD = 'rqgmmzudxvmkrlwc'  # Replace with your email password\
 
 MEDIA_ROOT = BASE_DIR / "upload"
 MEDIA_URL = '/media/'
+django_heroku.settings(locals())
 
 
 LOGIN_URL = 'login'
