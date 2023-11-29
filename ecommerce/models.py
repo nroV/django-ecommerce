@@ -92,8 +92,8 @@ class Sizes(models.Model) :
       def __str__(self) :
         return f"  {self.pk} {self.size} "
 class Attributes(models.Model):
-    size = models.ManyToManyField(Sizes,null=True,blank=True)
-    colorid = models.ManyToManyField(Colors,blank=True,null=True)
+    size = models.ManyToManyField(Sizes,blank=True)
+    colorid = models.ManyToManyField(Colors,blank=True)
     weight = models.FloatField(null=True,blank=True)
     unit = models.CharField(null=True,default="kg",blank=True,max_length=25)
     brand = models.CharField(max_length=25,null=True,blank=True)
@@ -219,7 +219,7 @@ class SuperDeal(models.Model):
         return f" {str(self.id)} SuperDeal {self.dealname} for {self.description}"    
     
 class Favorite(models.Model):
-    products = models.ManyToManyField(Product,null=True,blank=True)
+    products = models.ManyToManyField(Product,blank=True)
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
