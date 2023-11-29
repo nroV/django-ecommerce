@@ -130,6 +130,27 @@ class CustomerSerializerV3(serializers.ModelSerializer):
   class Meta:
       model =Customer
       fields = ('email',)
+      
+      
+      
+class CustomerSerializerGoogle(serializers.ModelSerializer):
+   imgid = ImageSerializer(many=False,read_only=True)
+   
+   class Meta:
+      model =Customer
+      # read_only_fields = ('password',)
+
+      fields = ['id','email','telephone','gender','imgid','username','password','created_date'] 
+      
+            
+class CustomerSerializerV2(serializers.ModelSerializer):
+   imgid = ImageSerializer(many=False,read_only=True)
+   
+   class Meta:
+      model =Customer
+      # read_only_fields = ('password',)
+
+      fields = ['id','firstname','lastname','email','telephone','gender','imgid','username','created_date'] 
 class CustomerSerializer(serializers.ModelSerializer):
    imgid = ImageSerializer(many=False,read_only=True)
    class Meta:
@@ -138,7 +159,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
       fields = ['id','firstname','lastname','email','telephone','gender','imgid','password','username']
  
- 
+
  
  
  

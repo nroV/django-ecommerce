@@ -426,6 +426,11 @@ class SuperDealList(generics.ListAPIView) :
    serializer_class = SuperDealSerializer
    queryset = SuperDeal.objects.all()
    pagination_class = MyCustomPagination
+   
+class SuperDealSingle(generics.RetrieveAPIView) :
+   serializer_class = SuperDealSerializer
+   queryset = SuperDeal.objects.all()
+   
 class ProductFavoriteCRUD(generics.RetrieveUpdateDestroyAPIView):
    serializer_class = FavoriteSerializer
    queryset = Favorite.objects.all()
@@ -578,27 +583,7 @@ def OrderStatus(request,pk):
      },status=HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])     
 
-def finduser(request,pk):
-   
-   if request.method == "GET":
-      if pk is not None :
-      
-
-          customer = get_object_or_404(Customer,pk = pk)
-          serializers = CustomerSerializer(customer,many=False)
-          
-          return Response(serializers.data,HTTP_200_OK)
-   
-       
-   
-      
-      else :
-         return Response(
-            {"message":"not found"},
-            status=HTTP_400_BAD_REQUEST
-         )
 class OrderDetailView(generics.ListAPIView):
    serializer_class = OrderDetailSerializer
    queryset = OrderDetail.objects.all()
@@ -689,64 +674,6 @@ class AddressSingle(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
        
-       
-class ReviewList(generics.ListCreateAPIView):
-   queryset = ReviewRating.objects.all()
-   serializer_class = ReviewSerializer
-
-
-   def list(self, request, *args, **kwargs):
-      # query = get_list_or_404(ReviewRating)
-      query = ReviewRating.objects.all()
-      if not query.exists():
-       return Response({
-          'message':'there is no data in the record'
-       }) 
-      return super().list(request, *args, **kwargs)  
-   def perform_create(self, serializer):
-
-      pro = get_object_or_404(Product,pk = self.request.data['product'])
-      customer = get_object_or_404(Customer,pk =self.kwargs.get('pk',None) )
-      print(self.kwargs.get('pk',None))
-      oldreiview = ReviewRating.objects.filter(product =  self.request.data['product'] )&ReviewRating.objects .filter(customer =self.kwargs.get('pk',None))
-
-      print(oldreiview)
-      # ReviewRating.objects.filter(
-      #    customer = self.kwargs.get('pk',None))
-      if not oldreiview.exists() :
-
-
-        if pro.avg_rating == 0:
-         pro.avg_rating = serializer.validated_data['rating'] 
-
-       
-        else:
-         pro.avg_rating =  (pro.avg_rating +  serializer.validated_data['rating'] )/2
-        pro.save()  
-        return serializer.save(product =pro,customer =  customer)
-      else:
-        theoldreview = ReviewRating.objects.get(product =  self.request.data['product'] )
-        print(oldreiview)
-        if pro.avg_rating == 0:
-         pro.avg_rating = serializer.validated_data['rating'] 
-
-       
-        else:
-         pro.avg_rating =  (pro.avg_rating +  serializer.validated_data['rating'] )/2
-        pro.save() 
-        
-        theoldreview.product = pro
-        theoldreview.customer = customer
-        theoldreview.rating = serializer.validated_data['rating'] 
-        theoldreview.description =  serializer.validated_data['description'] 
-        theoldreview.save()
-        return theoldreview.save()
-      
-      #   raise ValidationError({
-      #      'message':'You cannot make a duplicate review only in 1 post'
-      #   })
-
-
 
 class ReviewProduct(generics.ListAPIView):
    queryset = ReviewRating.objects.all()
@@ -1279,9 +1206,14 @@ class OrderDetailCreate(generics.CreateAPIView):
 
 
 
-           quantity = product_data['quantity']
+        
            color = Colors.objects.get(id = product_data['colorselection'])
+           if(color.stockqty > 0) :
+            color.stockqty =    color.stockqty - product_data['quantity']
+            
+           quantity = product_data['quantity'] 
            size = Sizes.objects.get(id =product_data['size'])
+           
            product_lines.append(f"{product.productname} {quantity} {product.price}")
          #   element!.price - ( element!.price * (double.parse( element.discount.toString() )/100)).truncateToDouble();
            print(color.imgid.images)
@@ -1334,6 +1266,7 @@ class OrderDetailCreate(generics.CreateAPIView):
        #Increase product selling
            product.sell_rating+= 1
            product.save()
+           color.save()
  
       #  serializer = self.get_serializer(order)
       #  return Response(serializer.data) 
@@ -1361,37 +1294,38 @@ class OrderDetailCreate(generics.CreateAPIView):
 # convert the datetime object to a string in the desired format
          formatted_date_string = date_object.strftime('%d-%m-%Y')
          subject =   'Order Comfirm'
-         
+         rounded_and_truncated_number = str(round(total, 2))[:5]
+
          print(pro)
          
-         # order.amount
-         # order.ispaid
-      #    context = {
-      #       "order":order,
-      #       "products":pro,
-      #        "total":total,
-      #        "url":"http://localhost:8000"
+         order.amount
+         order.ispaid
+         context = {
+            "order":order,
+            "products":pro,
+             "total":rounded_and_truncated_number,
+             "url":"http://localhost:8000"
             
-      #    }
-      #    html_message = render_to_string("Order.html",context)
-      #    plain_msg = strip_tags(html_message)
+         }
+         html_message = render_to_string("Order.html",context)
+         plain_msg = strip_tags(html_message)
         
         
      
         
-      #    message = EmailMultiAlternatives(
-      #       subject=subject,
-      #       from_email="Nightpp19@gmail.com",
-      #       to=[order.customer.email],
-      #       body=plain_msg,
+         message = EmailMultiAlternatives(
+            subject=subject,
+            from_email="Nightpp19@gmail.com",
+            to=[order.customer.email],
+            body=plain_msg,
             
             
             
             
-      #   )
+        )
         
-      #    message.attach_alternative(html_message,"text/html")
-      #    message.send()
+         message.attach_alternative(html_message,"text/html")
+         message.send()
          
 #        send_mail(
 #     f"Order #{order.id} Confirmation - TENH EY ",
@@ -1600,7 +1534,7 @@ def finduser(request,pk):
       
 
           customer = get_object_or_404(Customer,pk = pk)
-          serializers = CustomerSerializer(customer,many=False)
+          serializers = CustomerSerializerV2(customer,many=False)
           
           return Response(serializers.data,HTTP_200_OK)
    
@@ -1738,8 +1672,7 @@ class ReviewList(generics.ListCreateAPIView):
         pro.save()  
         return serializer.save(product =pro,customer =  customer)
       else:
-        theoldreview = ReviewRating.objects.get(product =  self.request.data['product'] )
-        print(oldreiview)
+        theoldreview = ReviewRating.objects.get(product =  self.request.data['product'], customer =self.kwargs.get('pk',None))
         if pro.avg_rating == 0:
          pro.avg_rating = serializer.validated_data['rating'] 
 
@@ -1885,10 +1818,17 @@ def ResetPW(request):
    verification_code =random.randint(10000,50000)
    serializers = CustomerSerializerResetPassword(data=request.data)
    if serializers.is_valid():
-      customer = Customer.objects.filter(email = serializers.validated_data['email']).first()
-      PasswordResetCodes.objects.create(user = customer,code = verification_code)
+      
+      customer = Customer.objects.filter( email = serializers.validated_data['email']).first()
+      
+ 
       # pw.code =   verification_code
       if customer :
+         
+         codecustomer = PasswordResetCodes.objects.filter(user = customer)
+         codecustomer.delete()
+         PasswordResetCodes.objects.create(user = customer,code = verification_code)
+         
          # hash_pw = make_password(serializers.data['password'])
          # serializers.save(password = hash_pw)
       #    send_mail(
@@ -2057,7 +1997,7 @@ def logincustomer(request):
 
 @api_view(['POST'])
 def socialauthregister(request):
-  serializers = CustomerSerializerV2(data=request.data)
+  serializers = CustomerSerializerGoogle(data=request.data)
   print(request.data)
   if serializers.is_valid():
    text = serializers.validated_data["username"]
@@ -2075,17 +2015,58 @@ def socialauthregister(request):
    confirmation_token = default_token_generator.make_token(newuser)
    activate_link_url = reverse('activate')
    activation_link = f'{activate_link_url}?user_id={newuser.id}&confirmation_token={confirmation_token}'
+   print(request.get_host())
 
+   host = f"http://{request.get_host()}" 
+   
+      #   send_mail(
+      #       'Activate your account',
+      #       f'Please click on the following link to activate your account: {host}/{activation_link}>',
+      #       'Nightpp19@gmail.com',
+      #       [newuser.email],
+      #       fail_silently=False,
+      # )
+   
+   #      refresh = RefreshToken.for_user(newuser)
+   #      token = {
+   #      'refresh': str(refresh),
+   #      'access': str(refresh.access_token),
+   #   }
+      #   return Response(token)
+   subject =   'Activate your account'
+   myrecipent = serializers.validated_data['email']  
+   html_message = render_to_string("Comfirm.html",{
+           "host":host,
+           "activate_link":activation_link
+           
+        })
+   plain_msg = strip_tags(html_message)
+        
+   message = EmailMultiAlternatives(
+            subject=subject,
+            from_email="Nightpp19@gmail.com",
+            to=[newuser.email],
+            body=plain_msg,
+            
+            
+            
+        )
+        
+   message.attach_alternative(html_message,"text/html")
+   message.send()
         # Send email with activation link
-   host = request.get_host()
+   # host = request.get_host()
+   
 
-   send_mail(
-            'Activate your account',
-            f'Please click on the following link to activate your account: {host}/{activation_link}>',
-            'Nightpp19@gmail.com',
-            [serializers.validated_data['email']],
-            fail_silently=False,
-      )
+   # send_mail(
+   #          'Activate your account',
+   #          f'Please click on the following link to activate your account: {host}/{activation_link}>',
+   #          'Nightpp19@gmail.com',
+   #          [serializers.validated_data['email']],
+   #          fail_silently=False,
+   #    )
+   
+   
    
    #      refresh = RefreshToken.for_user(newuser)
    #      token = {
@@ -2338,66 +2319,6 @@ def logincustomer(request):
     else:
        #validation error
        return Response(serializers.errors,status=HTTP_400_BAD_REQUEST)
-
-@swagger_auto_schema(method='POST',request_body= CustomerSerializerV2)
-
-@api_view(['POST'])
-def socialauthregister(request):
-  serializers = CustomerSerializerV2(data=request.data)
-  print(request.data)
-  if serializers.is_valid():
-   text = serializers.validated_data["username"]
-   arr = text.split(" ")
-   print(arr[len(  arr )-1])
-   thisfirstname = arr[0]
-   thislastname = arr[1]
-   thisusername = arr[len(  arr )-1]
-   thispassword = make_password( serializers.validated_data["password"])
-   serializers.save(username = thisusername,firstname = thisfirstname,
-                    lastname = thislastname,telephone =  serializers.validated_data["telephone"],
-                    password = thispassword
-                     )
-   newuser = Customer.objects.get(email = serializers.validated_data["email"])
-   confirmation_token = default_token_generator.make_token(newuser)
-   activate_link_url = reverse('activate')
-   activation_link = f'{activate_link_url}?user_id={newuser.id}&confirmation_token={confirmation_token}'
-
-        # Send email with activation link
-   host = request.get_host()
-
-   send_mail(
-            'Activate your account',
-            f'Please click on the following link to activate your account: {host}/{activation_link}>',
-            'Nightpp19@gmail.com',
-            [serializers.validated_data['email']],
-            fail_silently=False,
-      )
-   
-   #      refresh = RefreshToken.for_user(newuser)
-   #      token = {
-   #      'refresh': str(refresh),
-   #      'access': str(refresh.access_token),
-   #   }
-      #   return Response(token)
-       
-   return Response( {
-           "message":"An email has sent to your associated account"
-        }, status=status.HTTP_201_CREATED)
-
-    
-
-  
-
-     
-#   I/flutter ( 6751): nightpp19@gmail.com
-#   I/flutter ( 6751): 116512354859814328502
-#   I/flutter ( 6751): SIV SOVANPANHAVORN (Vorni)  
-
-  else:
-   return Response(serializers.errors,status=HTTP_400_BAD_REQUEST) 
-
-   pass
-
 
 
 @swagger_auto_schema(method='POST',request_body= CustomerSerializerV3)

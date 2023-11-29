@@ -29,7 +29,7 @@ class Images(models.Model):
         super().delete(*args, **kwargs)
         
     def __str__(self):
-        return str(self.id)
+        return str(self.id) + str(self.images)
 
 
 class Customer(AbstractBaseUser,models.Model):
@@ -46,8 +46,9 @@ class Customer(AbstractBaseUser,models.Model):
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
-    imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True,blank=True)
+    imgid = models.ForeignKey(Images, on_delete=models.SET_NULL, null=True, blank=True,default = 1)
     gender = models.CharField(max_length=25,null= False,blank=True,default="Other")
+    created_date = models.DateTimeField(default=datetime.now())
 
     def delete(self, *args, **kwargs):
         
@@ -79,9 +80,10 @@ class Colors(models.Model):
     code = models.CharField(max_length=10,default="#EEEEEE",blank=True,null=True)
     imgid = models.OneToOneField(Images,blank=True,on_delete=models.CASCADE,null=True,default=1)
     price = models.FloatField(default=0)
+    stockqty = models.IntegerField(default=0)
     desc = models.CharField(max_length=25,default='color',null=True,blank=True)
-    def __str__(self) :
-        return f"  {self.pk} {self.color} {self.desc} "
+    # def __str__(self) :
+    #     return f"  {self.pk} {self.color} {self.desc} "
 
 class Sizes(models.Model) :
       size =  models.CharField(max_length=25,null=True,blank=True)
@@ -214,7 +216,7 @@ class SuperDeal(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=2)
     imgid = models.OneToOneField(Images,on_delete=models.CASCADE,null=True)
     def __str__(self):
-        return f"SuperDeal {self.dealname} for {self.product.name}"    
+        return f" {str(self.id)} SuperDeal {self.dealname} for {self.description}"    
     
 class Favorite(models.Model):
     products = models.ManyToManyField(Product,null=True,blank=True)

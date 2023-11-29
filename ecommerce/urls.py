@@ -20,7 +20,7 @@ urlpatterns = [
    path('product/favorite/<int:pk>/delete',views.ProductFavoriteDestroy.as_view(),name='list-product'),
 
    path('superdeal/product',views.SuperDealList.as_view()),
-   
+   path('superdeal/<int:pk>',views.SuperDealSingle.as_view()),
    # path('product/<int:pk>/favorite/',views.ProductFavoriteCRUD.as_view(),name='list-product'),
     #category
    path('category',views.CategoryList.as_view(),name='list-product'),
@@ -55,6 +55,7 @@ urlpatterns = [
         path('auth/google/login',views.socialauthlogin,name="login-google"),
    path('auth/update/<int:pk>',views.updateuserprofile,name="login-google-profile"),
      # Google Sign in Token
+     
      
     path('auth/reset',views.ResetPW,name="reset-password1"),
     path('auth/reset/verify',views.VerifyCodePW,name="reset-password2"),
