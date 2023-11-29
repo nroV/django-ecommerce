@@ -1304,7 +1304,7 @@ class OrderDetailCreate(generics.CreateAPIView):
             "order":order,
             "products":pro,
              "total":rounded_and_truncated_number,
-             "url":"http://localhost:8000"
+             "url":"https://django-ecomm-6e6490200ee9.herokuapp.com"
             
          }
          html_message = render_to_string("Order.html",context)
@@ -2017,7 +2017,7 @@ def socialauthregister(request):
    activation_link = f'{activate_link_url}?user_id={newuser.id}&confirmation_token={confirmation_token}'
    print(request.get_host())
 
-   host = f"http://{request.get_host()}" 
+   host = f"https://django-ecomm-6e6490200ee9.herokuapp.com" 
    
       #   send_mail(
       #       'Activate your account',
