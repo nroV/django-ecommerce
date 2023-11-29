@@ -181,7 +181,7 @@ REST_FRAMEWORK = {
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Replace with your preferred backend
-EMAIL_HOST = 'smtp.heroku.com'  # Replace with your email host
+EMAIL_HOST = 'smtop.gmail.com'  # Replace with your email host
 EMAIL_PORT = 587  # Replace with your email port
 EMAIL_USE_TLS = True  # Set to False if your email server doesn't use TLS
 EMAIL_HOST_USER = 'Nightpp19@gmail.com'  # Replace with your email username
