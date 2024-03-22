@@ -1828,17 +1828,7 @@ def ResetPW(request):
          codecustomer = PasswordResetCodes.objects.filter(user = customer)
          codecustomer.delete()
          PasswordResetCodes.objects.create(user = customer,code = verification_code)
-         
-         # hash_pw = make_password(serializers.data['password'])
-         # serializers.save(password = hash_pw)
-      #    send_mail(
-      #       'Reset Password',
-      #       f'Please enter your verfication code to change your password thanks you bellow {verification_code }',
-      #       'Nightpp19@gmail.com',
-      #       [serializers.validated_data['email']],
-      #       fail_silently=False,
 
-      #   )
          subject =   'Reset Password'
          html_message = render_to_string("Reset.html",{
            "verification":verification_code
