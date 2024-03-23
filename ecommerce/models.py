@@ -46,7 +46,7 @@ class Customer(AbstractBaseUser,models.Model):
     isowner = models.BooleanField(default=False,null=True)
     last_login = models.DateTimeField(auto_now=True)
     is_activated = models.BooleanField(default=False)
-    imgid = models.ForeignKey(Images, on_delete=models.SET_NULL, null=True, blank=True,default = 29)
+    imgid = models.ForeignKey(Images, on_delete=models.SET_NULL, null=True, blank=True,default = 16)
     gender = models.CharField(max_length=25,null= False,blank=True,default="Other")
     created_date = models.DateTimeField(default=datetime.now())
 
