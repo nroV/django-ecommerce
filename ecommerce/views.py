@@ -2168,8 +2168,8 @@ def updateuserprofile(request,pk):
 
 @swagger_auto_schema(method='POST',request_body= CustomerSerializer)
 @api_view(['POST'])      
-def register(request):
-    print("register")
+  print("register")def register(request):
+  
 
     serializers = CustomerSerializer(data=request.data)
 
